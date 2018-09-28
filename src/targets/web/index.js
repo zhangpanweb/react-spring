@@ -8,7 +8,6 @@ import { interpolate } from '../../animated/AnimatedInterpolation'
 import animated from '../../animated/createAnimatedComponent'
 import { config } from '../shared/constants'
 import Spring from '../../index'
-import NewSpring from '../../index'
 import keyframes from '../../Keyframes'
 
 const domElements = [

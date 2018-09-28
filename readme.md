@@ -84,6 +84,10 @@ You'll find a full docs, live playgrounds, prop descriptions and so forth here:
 
 # Basic overview
 
+```jsx
+import { Spring } from 'react-spring'
+```
+
 ## Springs ([Demo](https://codesandbox.io/embed/oln44nx8xq))
 
 <img src="assets/spring.gif" width="285" />
@@ -91,8 +95,6 @@ You'll find a full docs, live playgrounds, prop descriptions and so forth here:
 A `Spring` will move data from one state to another. It remembers the current state, value changes are always fluid.
 
 ```jsx
-import { Spring } from 'react-spring'
-
 <Spring from={{ opacity: 0 }} to={{ opacity: 1 }}>
   {styles => <div style={styles}>i will fade in</div>}
 </Spring>
@@ -102,18 +104,16 @@ import { Spring } from 'react-spring'
 
 <img src="assets/transitions.gif" width="285" />
 
-`Transition` watches elements as they mount and unmount, it helps you to animate these changes.
+`Spring` can watch elements as they mount and unmount and animate these transitions.
 
 ```jsx
-import { Transition } from 'react-spring'
-
-<Transition
+<Spring
   keys={items.map(item => item.key)}
   from={{ opacity: 0, height: 0 }}
   enter={{ opacity: 1, height: 20 }}
   leave={{ opacity: 0, height: 0, pointerEvents: 'none' }}>
   {items.map(item => styles => <li style={styles}>{item.text}</li>)}
-</Transition>
+</Spring>
 ```
 
 ## 2-state and 1-state Reveals ([Demo](https://codesandbox.io/embed/yj52v5689))
@@ -123,51 +123,48 @@ import { Transition } from 'react-spring'
 Given a single child instead of a list you can toggle between two components.
 
 ```jsx
-import { Transition } from 'react-spring'
-
-<Transition from={{ opacity: 0 }} enter={{ opacity: 1 }} leave={{ opacity: 0 }}>
+<Spring from={{ opacity: 0 }} enter={{ opacity: 1 }} leave={{ opacity: 0 }}>
   {toggle
     ? styles => <div style={styles}>Component A</div>
-    : styles => <div style={styles}>Component B</div>
-  }
-</Transition>
+    : styles => <div style={styles}>Component B</div>}
+</Spring>
 ```
 
 If you need to toggle a single child, that is also possible.
 
 ```jsx
-import { Transition } from 'react-spring'
-
-<Transition from={{ opacity: 0 }} enter={{ opacity: 1 }} leave={{ opacity: 0 }}>
+<Spring from={{ opacity: 0 }} enter={{ opacity: 1 }} leave={{ opacity: 0 }}>
   {visible && (styles => <div style={styles}>Single Component</div>)}
-</Transition>
+</Spring>
 ```
 
 ## Trails and staggered animations ([Demo](https://codesandbox.io/embed/vvmv6x01l5))
 
 <img src="assets/trails.gif" width="285" />
 
-`Trail` animates the first child of a list of elements, the rest follow the spring of their previous sibling.
+`Spring` can animate the first child of a list of elements, while the rest follow their previous sibling in a trailing motion.
 
 ```jsx
-import { Trail } from 'react-spring'
-
-<Trail from={{ opacity: 0 }} to={{ opacity: 1 }} keys={items.map(item => item.key)}>
+<Spring
+  trail
+  from={{ opacity: 0 }}
+  to={{ opacity: 1 }}
+  keys={items.map(item => item.key)}>
   {items.map(item => styles => <div style={styles}>{item.text}</div>)}
-</Trail>
+</Spring>
 ```
 
 ## Keyframes ([Demo](https://codesandbox.io/embed/zl35mrkqmm))
 
 <img src="assets/keyframes-trail.gif" width="285" />
 
-`Keyframes` allow you to chain, compose and orchestrate animations by creating predefined slots. The resulting primitive behaves like the primitive it stems from, it can receive all generic properties like `native` or `from`, etc. You make it animate by passing the `state` props, which receives the named slot.
+`keyframes` allow you to orchestrate animations by creating predefined slots. The resulting primitive behaves like a generic `Spring`, it can receive the same properties like `native` or `from`, etc. You make it animate by passing the `state` props, which receives the named slot.
 
 ```jsx
-import { Keyframes, config } from 'react-spring'
+import { keyframes, config } from 'react-spring'
 
 // You can create keyframes for springs, trails and transitions
-const Container = Keyframes.Spring({
+const Container = keyframes({
   // Single props
   show: { to: { opacity: 1 } },
   // Chained animations (arrays)
@@ -185,25 +182,6 @@ const Container = Keyframes.Spring({
 </Container>
 ```
 
-## Parallax and page transitions ([Demo](https://codesandbox.io/embed/548lqnmk6l))
-
-<img src="assets/horizontal.gif" width="285" />
-
-`Parallax` allows you to declaratively create page/scroll-based animations.
-
-```jsx
-import { Parallax, ParallaxLayer } from 'react-spring'
-
-<Parallax pages={2}>
-  <ParallaxLayer offset={0} speed={0.2}>
-    first Page
-  </ParallaxLayer>
-  <ParallaxLayer offset={1} speed={0.5}>
-    second Page
-  </ParallaxLayer>
-</Parallax>
-```
-
 ## Time/duration-based implementations and addons ([Demo](https://codesandbox.io/embed/q9lozyymr9))
 
 <img src="assets/time.gif" width="285" />
@@ -214,6 +192,25 @@ You'll find varying implementations under [/dist/addons](https://github.com/drcm
 import { TimingAnimation, Easing } from 'react-spring/dist/addons'
 
 <Spring impl={TimingAnimation} config={{ duration: 1000, easing: Easing.linear }} >
+```
+
+## Parallax and page transitions ([Demo](https://codesandbox.io/embed/548lqnmk6l))
+
+<img src="assets/horizontal.gif" width="285" />
+
+`Parallax` allows you to declaratively create page/scroll-based animations.
+
+```jsx
+import { Parallax, ParallaxLayer } from 'react-spring/dist/addons'
+
+<Parallax pages={2}>
+  <ParallaxLayer offset={0} speed={0.2}>
+    first Page
+  </ParallaxLayer>
+  <ParallaxLayer offset={1} speed={0.5}>
+    second Page
+  </ParallaxLayer>
+</Parallax>
 ```
 
 # Interpolation

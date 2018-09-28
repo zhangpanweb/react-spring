@@ -6,10 +6,8 @@ import controller from '../../animated/AnimatedController'
 import Interpolation from '../../animated/Interpolation'
 import animated from '../../animated/createAnimatedComponent'
 import { config } from '../shared/constants'
-import Spring from '../../Spring'
-import Transition from '../../Transition'
-import Trail from '../../Trail'
-import Keyframes from '../../Keyframes'
+import Spring from '../../index'
+import keyframes from '../../Keyframes'
 
 // Problem: https://github.com/animatedjs/animated/pull/102
 // Solution: https://stackoverflow.com/questions/638565/parsing-scientific-notation-sensibly/658662
@@ -40,9 +38,7 @@ Globals.injectApplyAnimatedValues(() => false, style => style)
 
 export {
   Spring,
-  Keyframes,
-  Transition,
-  Trail,
+  keyframes,
   Animation,
   SpringAnimation,
   AnimatedValue,

@@ -7,10 +7,8 @@ import animated from '../../animated/createAnimatedComponent'
 import createInterpolation from '../shared/interpolation'
 import colorNames from '../shared/colors'
 import { config } from '../shared/constants'
-import Spring from '../../Spring'
-import Transition from '../../Transition'
-import Trail from '../../Trail'
-import Keyframes from '../../Keyframes'
+import Spring from '../../index'
+import keyframes from '../../Keyframes'
 
 Globals.injectDefaultElement('Group')
 Globals.injectInterpolation(createInterpolation)
@@ -59,9 +57,7 @@ Object.assign(
 
 export {
   Spring,
-  Keyframes,
-  Transition,
-  Trail,
+  keyframes,
   Animation,
   SpringAnimation,
   AnimatedValue,
