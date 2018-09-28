@@ -1,5 +1,5 @@
 import React from 'react'
-import { Spring } from 'react-spring'
+import Spring from './Spring'
 
 export default class DurationTrail extends React.Component {
   getValues() {
@@ -17,19 +17,23 @@ export default class DurationTrail extends React.Component {
   render() {
     const {
       children,
-      delay = 0,
-      ms = 200,
+      trail = 200,
       reverse = false,
+      config = {},
       keys,
       onRest,
       ...props
     } = this.props
+    const len = children.length
     return children.map((child, i) => (
       <Spring
         ref={ref => i === 0 && (this.instance = ref)}
         key={keys[i]}
         {...props}
-        delay={delay + (reverse ? children.length - i : i) * ms}
+        config={{
+          ...config,
+          delay: (config.delay || 0) + (reverse ? len - i : i) * trail,
+        }}
         onRest={i === (reverse ? 0 : children.length - 1) ? onRest : null}
         children={child}
       />

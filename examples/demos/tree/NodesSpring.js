@@ -1,5 +1,5 @@
 import React from 'react'
-import { Transition, animated, interpolate } from 'react-spring'
+import { Spring, animated, interpolate } from 'react-spring'
 import Node from './Node'
 import { findCollapsedParent, getTopLeft } from './utils'
 
@@ -7,7 +7,7 @@ const keyAccessor = n => n.data.name
 
 function Nodes({ nodes, layout, orientation, onNodeClick }) {
   return (
-    <Transition
+    <Spring
       native
       items={nodes}
       keys={keyAccessor}
@@ -82,7 +82,7 @@ function Nodes({ nodes, layout, orientation, onNodeClick }) {
           </animated.g>
         )
       })}
-    </Transition>
+    </Spring>
   )
 }
 

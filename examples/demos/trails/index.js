@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trail, animated } from 'react-spring'
+import { Spring, animated } from 'react-spring'
 import './styles.css'
 
 export default class TrailsExample extends React.PureComponent {
@@ -15,8 +15,9 @@ export default class TrailsExample extends React.PureComponent {
           width: '100%',
           height: '100%',
         }}>
-        <Trail
+        <Spring
           native
+          trail
           from={{ opacity: 0, x: -100 }}
           to={{ opacity: toggle ? 1 : 0.25, x: toggle ? 0 : 100 }}
           keys={items}>
@@ -30,7 +31,7 @@ export default class TrailsExample extends React.PureComponent {
               }}
             />
           ))}
-        </Trail>
+        </Spring>
       </div>
     )
   }

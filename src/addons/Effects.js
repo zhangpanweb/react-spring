@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trail, Transition, animated, Globals } from 'react-spring'
+import { Spring, animated, Globals } from 'react-spring'
 import PropTypes from 'prop-types'
 
 const wrap = (child, styles) => {
@@ -39,8 +39,9 @@ export class Slug extends React.PureComponent {
       wrap(child, styles)
     )
     return (
-      <Trail
+      <Spring
         native
+        trail
         {...rest}
         keys={result.map((_, i) => i)}
         from={from}
@@ -72,7 +73,7 @@ export class Fade extends React.PureComponent {
     } = this.props
     const result = styles => wrap(children, styles)
     return (
-      <Transition
+      <Spring
         native
         keys={show.toString()}
         {...rest}

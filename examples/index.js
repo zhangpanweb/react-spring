@@ -24,7 +24,6 @@ const components = [
   'script',
   'auto',
   'router',
-  'scroll',
 ].reduce(
   (acc, path) => ({
     ...acc,
@@ -37,7 +36,7 @@ const components = [
 )
 
 const DEBUG = false
-const DebugComponent = components['timing']
+const DebugComponent = components['bugs/onstart']
 
 ReactDOM.render(
   DEBUG ? (

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Transition, animated } from 'react-spring'
+import { Spring, animated } from 'react-spring'
 
 const defaultStyles = {
   overflow: 'hidden',
@@ -56,7 +56,7 @@ export default class TransitionsExample extends React.PureComponent {
           padding: 0,
         }}
         onClick={() => this.componentDidMount()}>
-        <Transition
+        <Spring
           keys={this.state.items}
           initial={null}
           from={{ height: 0 }}
@@ -69,7 +69,7 @@ export default class TransitionsExample extends React.PureComponent {
               {item}
             </animated.li>
           ))}
-        </Transition>
+        </Spring>
       </ul>
     )
   }

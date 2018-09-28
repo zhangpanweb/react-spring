@@ -7,9 +7,8 @@ import controller from '../../animated/AnimatedController'
 import { interpolate } from '../../animated/AnimatedInterpolation'
 import animated from '../../animated/createAnimatedComponent'
 import { config } from '../shared/constants'
-import Spring from '../../Spring'
-import Transition from '../../Transition'
-import Trail from '../../Trail'
+import Spring from '../../index'
+import NewSpring from '../../index'
 import Keyframes from '../../Keyframes'
 import Parallax, { ParallaxLayer } from './Parallax'
 
@@ -159,8 +158,6 @@ const extendedAnimated = domElements.reduce((acc, element) => {
 export {
   Spring,
   Keyframes,
-  Transition,
-  Trail,
   Parallax,
   ParallaxLayer,
   Animation,

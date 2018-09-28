@@ -1,5 +1,5 @@
 import React from 'react'
-import { Transition, animated } from 'react-spring'
+import { Spring, animated } from 'react-spring'
 
 const defaultStyles = {
   width: '100%',
@@ -21,7 +21,7 @@ export default class App extends React.PureComponent {
     return (
       <div style={{ height: '100%' }} onClick={this.toggleItem}>
         <ul>
-          <Transition
+          <Spring
             native
             keys={this.state.items}
             from={{ opacity: 0, height: 0, overflow: 'hidden' }}
@@ -34,7 +34,7 @@ export default class App extends React.PureComponent {
                 </div>
               </animated.li>
             ))}
-          </Transition>
+          </Spring>
         </ul>
       </div>
     )

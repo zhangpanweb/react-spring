@@ -1,5 +1,5 @@
 import React from 'react'
-import { Transition, animated } from 'react-spring'
+import { Spring, animated } from 'react-spring'
 import { hidden } from 'ansi-colors'
 
 export default class ReactSpringTest extends React.Component {
@@ -16,7 +16,7 @@ export default class ReactSpringTest extends React.Component {
           Toggle 2 - Opacity And Height (onUpdate continues to run forever after
           animation stops)
         </button>
-        <Transition
+        <Spring
           native
           from={{ height: 0 }}
           enter={{ height: 'auto' }}
@@ -27,7 +27,7 @@ export default class ReactSpringTest extends React.Component {
                 <div style={{ backgroundColor: '#00FF00' }}>My Component</div>
               </animated.div>
             ))}
-        </Transition>
+        </Spring>
 
         <div style={{ marginTop: '20px' }}>
           Instructions for testing.

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Group } from '@vx/group'
-import { Transition } from 'react-spring'
+import { Spring } from 'react-spring'
 
 import Link from './Link'
 import { findCollapsedParent } from './utils'
@@ -8,7 +8,7 @@ import { findCollapsedParent } from './utils'
 function Links({ links, linkType, layout, orientation, stepPercent }) {
   return (
     <Group>
-      <Transition
+      <Spring
         items={links}
         keys={d => `${d.source.data.name}_${d.target.data.name}`}
         from={({ source, target }) => ({
@@ -53,7 +53,7 @@ function Links({ links, linkType, layout, orientation, stepPercent }) {
             fill="none"
           />
         ))}
-      </Transition>
+      </Spring>
     </Group>
   )
 }

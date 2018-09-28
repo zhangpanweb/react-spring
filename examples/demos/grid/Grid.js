@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import Measure from 'react-measure'
-import { Transition, animated, interpolate } from 'react-spring'
+import { Spring, animated, interpolate } from 'react-spring'
 
 const styles = {
   outer: { position: 'relative', width: '100%', height: '100%' },
@@ -132,7 +132,7 @@ export default class Grid extends React.Component {
               onResize={this.resizeInner}>
               {({ measureRef }) => (
                 <div ref={measureRef} style={{ ...styles.inner, height }}>
-                  <Transition
+                  <Spring
                     native
                     items={displayData}
                     keys={d => d.key}
@@ -166,7 +166,7 @@ export default class Grid extends React.Component {
                         />
                       )
                     )}
-                  </Transition>
+                  </Spring>
                 </div>
               )}
             </Measure>

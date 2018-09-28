@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Transition, animated } from 'react-spring'
+import { Spring, animated } from 'react-spring'
 import './styles.css'
 
 const pages = [
@@ -22,13 +22,13 @@ export default class App extends React.PureComponent {
   render() {
     return (
       <div className="main" onClick={this.toggle}>
-        <Transition
+        <Spring
           native
           from={{ opacity: 0, transform: 'translate3d(100%,0,0)' }}
           enter={{ opacity: 1, transform: 'translate3d(0%,0,0)' }}
           leave={{ opacity: 0, transform: 'translate3d(-50%,0,0)' }}>
           {pages[this.state.index]}
-        </Transition>
+        </Spring>
       </div>
     )
   }

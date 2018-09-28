@@ -1,5 +1,5 @@
 import React from 'react'
-import { Transition, Trail, animated, config } from 'react-spring'
+import { Spring, animated, config } from 'react-spring'
 
 export class Slug extends React.PureComponent {
   render() {
@@ -22,8 +22,9 @@ export class Slug extends React.PureComponent {
       return <Component {...props} />
     })
     return (
-      <Trail
+      <Spring
         native
+        trail
         config={config.slow}
         {...rest}
         keys={React.Children.map(children, (_, i) => i)}
@@ -61,7 +62,7 @@ export class Fade extends React.PureComponent {
     }
 
     return (
-      <Transition
+      <Spring
         native
         config={config.slow}
         keys={show.toString()}
