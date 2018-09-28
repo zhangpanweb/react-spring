@@ -2,7 +2,7 @@ import 'antd/dist/antd.css'
 import './styles.css'
 import React, { Fragment } from 'react'
 import ReactDOM from 'react-dom'
-import { Keyframes, animated, config } from 'react-spring'
+import { keyframes, animated, config } from 'react-spring'
 import { Avatar, Form, Icon, Input, Button, Checkbox } from 'antd'
 import delay from 'delay'
 
@@ -13,7 +13,7 @@ const fast = {
 }
 
 // Creates a spring with predefined animation slots
-const Sidebar = Keyframes.Spring({
+const Sidebar = keyframes({
   // Slots can take arrays/chains,
   peek: [
     { delay: 500, from: { x: -100 }, to: { x: 0 }, config: fast },
@@ -29,7 +29,7 @@ const Sidebar = Keyframes.Spring({
 })
 
 // Creates a keyframed trail
-const Content = Keyframes.Trail({
+const Content = keyframes({
   peek: [
     { delay: 600, from: { x: -100, opacity: 0 }, to: { x: 0, opacity: 1 } },
     { to: { x: -100, opacity: 0 } },
@@ -91,6 +91,7 @@ export default class App extends React.Component {
               }}>
               <Content
                 native
+                trail
                 keys={items.map((_, i) => i)}
                 config={{ tension: 200, friction: 20 }}
                 state={state}>

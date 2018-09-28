@@ -1,5 +1,5 @@
 import React from 'react'
-import { Parallax, ParallaxLayer } from 'react-spring'
+import { Parallax, ParallaxLayer } from '../../../src/addons'
 
 // Little helpers ...
 const url = (name, wrap = false) =>

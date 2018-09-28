@@ -1,8 +1,8 @@
 import React from 'react'
-import { Keyframes, animated } from 'react-spring'
+import { keyframes, animated } from 'react-spring'
 import { TimingAnimation, Easing } from '../../../src/addons'
 
-const Container = Keyframes.Spring(async next => {
+const Container = keyframes(async next => {
   while (true) {
     await next({
       from: { radians: 0, color: '#247BA0' },

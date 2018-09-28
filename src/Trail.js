@@ -45,8 +45,8 @@ export default class Trail extends React.PureComponent {
       to = {},
       native = false,
       keys,
-      delay,
       onRest,
+      trail,
       ...extra
     } = this.props
     const animations = new Set()
@@ -57,21 +57,16 @@ export default class Trail extends React.PureComponent {
     }
     const props = { ...extra, native, from, to }
     const target = render || children
-    return target.map((child, i) => {
-      const attachedHook = animation => hook(i, animation)
-      const firstDelay = i === 0 && delay
-      return (
-        <Spring
-          ref={ref => i === 0 && (this.instance = ref)}
-          onRest={i === 0 ? onRest : null}
-          key={keys[i]}
-          {...props}
-          delay={firstDelay || undefined}
-          attach={attachedHook}
-          render={render && child}
-          children={render ? children : child}
-        />
-      )
-    })
+    return target.map((child, i) => (
+      <Spring
+        ref={ref => i === 0 && (this.instance = ref)}
+        onRest={i === 0 ? onRest : null}
+        key={keys[i]}
+        {...props}
+        attach={animation => hook(i, animation)}
+        render={render && child}
+        children={render ? children : child}
+      />
+    ))
   }
 }

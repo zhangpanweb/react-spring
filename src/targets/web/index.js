@@ -9,8 +9,7 @@ import animated from '../../animated/createAnimatedComponent'
 import { config } from '../shared/constants'
 import Spring from '../../index'
 import NewSpring from '../../index'
-import Keyframes from '../../Keyframes'
-import Parallax, { ParallaxLayer } from './Parallax'
+import keyframes from '../../Keyframes'
 
 const domElements = [
   'a',
@@ -157,9 +156,7 @@ const extendedAnimated = domElements.reduce((acc, element) => {
 
 export {
   Spring,
-  Keyframes,
-  Parallax,
-  ParallaxLayer,
+  keyframes,
   Animation,
   SpringAnimation,
   AnimatedValue,

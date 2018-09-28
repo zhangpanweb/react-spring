@@ -1,8 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Spring from './Spring'
-import Trail from './Trail'
-import Transition from './Transition'
+import Spring from './index'
 import { getForwardProps } from './targets/shared/helpers'
 import { config as springConfig } from './targets/shared/constants'
 
@@ -93,19 +91,19 @@ class Keyframes extends React.PureComponent {
       />
     ) : null
   }
+}
 
-  static create = primitive => (states, filter = states => states) => {
-    if (typeof states === 'function' || Array.isArray(states))
-      states = { [DEFAULT]: states }
-    return props => (
-      <Keyframes
-        primitive={primitive}
-        states={states}
-        filter={filter}
-        {...props}
-      />
-    )
-  }
+const createKeyframes = primitive => (states, filter = states => states) => {
+  if (typeof states === 'function' || Array.isArray(states))
+    states = { [DEFAULT]: states }
+  return props => (
+    <Keyframes
+      primitive={primitive}
+      states={states}
+      filter={filter}
+      {...props}
+    />
+  )
 }
 
 const interpolateTo = props => {
@@ -117,10 +115,7 @@ const interpolateTo = props => {
   return { to: forward, ...rest }
 }
 
-Keyframes.Spring = Keyframes.create(Spring)
-Keyframes.Spring.to = states => Keyframes.Spring(states, interpolateTo)
-Keyframes.Trail = Keyframes.create(Trail)
-Keyframes.Trail.to = states => Keyframes.Trail(states, interpolateTo)
-Keyframes.Transition = Keyframes.create(Transition)
+const keyframes = createKeyframes(Spring)
+keyframes.to = states => keyframes(states, interpolateTo)
 
-export default Keyframes
+export default keyframes

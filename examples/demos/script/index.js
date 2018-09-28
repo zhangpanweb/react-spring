@@ -1,8 +1,8 @@
 import React from 'react'
-import { Keyframes, animated } from 'react-spring'
+import { keyframes, animated } from 'react-spring'
 import delay from 'delay'
 
-const Content = Keyframes.Spring(async next => {
+const Content = keyframes(async next => {
   // None of this will cause React to render, the component renders only once :-)
   while (true) {
     await next({

@@ -38,8 +38,6 @@ export default class Spring extends React.Component {
     render: PropTypes.func,
     /** Prevents animation if true, or for individual keys: fn(key => true/false) */
     immediate: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
-    /** Delay in ms before the animation starts (config.delay takes precedence if present) */
-    delay: PropTypes.number,
     /** When true the spring starts from scratch (from -> to) */
     reset: PropTypes.bool,
     /** Spring config, or for individual keys: fn(key => config) */
@@ -258,18 +256,14 @@ export default class Spring extends React.Component {
   }
 
   start = () => {
-    const { config, delay, impl } = this.props
+    const { config, impl } = this.props
     if (this.props.onStart) this.props.onStart()
     Object.keys(this.animations).forEach(name => {
       const { animation, toValue: to } = this.animations[name]
       // TODO: figure out why this is needed ...
       if (!to.__getValue && animation.__getValue() === to)
         return this.finishAnimation(name)
-      controller(
-        animation,
-        { to, delay, ...callProp(config, name) },
-        impl
-      ).start(
+      controller(animation, { to, ...callProp(config, name) }, impl).start(
         !to.__getValue &&
           (props => props.finished && this.finishAnimation(name))
       )

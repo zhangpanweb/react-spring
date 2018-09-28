@@ -1,12 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import controller from '../../animated/AnimatedController'
-import AnimatedValue from '../../animated/AnimatedValue'
-import createAnimatedComponent from '../../animated/createAnimatedComponent'
-import SpringAnimation from '../../animated/SpringAnimation'
-import { config } from '../shared/constants'
+import {
+  controller,
+  AnimatedValue,
+  animated,
+  SpringAnimation,
+  config,
+  Globals,
+} from 'react-spring'
 
-const AnimatedDiv = createAnimatedComponent('div')
+const El = Globals.defaultElement
+const AnimatedDiv = animated(El)
 const { Provider, Consumer } = React.createContext(null)
 
 function getScrollType(horizontal) {
@@ -129,7 +133,7 @@ export class ParallaxLayer extends React.PureComponent {
   }
 }
 
-export default class Parallax extends React.PureComponent {
+export class Parallax extends React.PureComponent {
   // TODO keep until major release
   static Layer = ParallaxLayer
 
@@ -242,7 +246,7 @@ export default class Parallax extends React.PureComponent {
     } = this.props
     const overflow = scrolling ? 'scroll' : 'hidden'
     return (
-      <div
+      <El
         ref={node => (this.container = node)}
         onScroll={this.onScroll}
         onWheel={scrolling ? this.scrollStop : null}
@@ -262,7 +266,7 @@ export default class Parallax extends React.PureComponent {
         }}
         className={className}>
         {this.state.ready && (
-          <div
+          <El
             ref={node => (this.content = node)}
             style={{
               position: 'absolute',
@@ -275,9 +279,9 @@ export default class Parallax extends React.PureComponent {
               ...innerStyle,
             }}>
             <Provider value={this}>{children}</Provider>
-          </div>
+          </El>
         )}
-      </div>
+      </El>
     )
   }
 }
