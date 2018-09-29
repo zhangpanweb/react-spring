@@ -4,18 +4,18 @@ import Trail from './Trail'
 import DurationTrail from './DurationTrail'
 import Transition from './Transition'
 
-export default class Spring extends React.Component {
-  setRef = r => (this.ref = r)
-  getValues = () => this.ref && this.ref.getValues()
+class Spring extends React.Component {
   render() {
-    const { to, trail, ...rest } = this.props
+    const { forwardRef, to, trail, ...rest } = this.props
     if (to) {
       if (trail) {
         const TrailImpl = typeof trail === 'boolean' ? Trail : DurationTrail
-        return <TrailImpl ref={this.setRef} to={to} trail={trail} {...rest} />
-      } else return <SpringImpl ref={this.setRef} to={to} {...rest} />
-    } else return <Transition ref={this.setRef} trail={trail} {...rest} />
+        return <TrailImpl ref={forwardRef} to={to} trail={trail} {...rest} />
+      } else return <SpringImpl ref={forwardRef} to={to} {...rest} />
+    } else return <Transition ref={forwardRef} trail={trail} {...rest} />
   }
 }
 
-// TODO: forwardref
+export default React.forwardRef((props, ref) => (
+  <Spring {...props} forwardRef={ref} />
+))

@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import { Stage, Layer } from 'react-konva'
-import { Keyframes, animated } from '../../../../src/targets/konva'
+import { keyframes, animated } from '../../../../src/targets/konva'
 import { TimingAnimation, Easing } from '../../../../src/addons'
 
-const Animation = Keyframes.Spring(async next => {
+const Animation = keyframes(async next => {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     await next({
