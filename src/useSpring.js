@@ -3,7 +3,7 @@ import { is } from './shared/helpers'
 
 /** API
  * const [props, set] = useSpring(() => ({ ... }))
- * const props = useSpring(({ ... }))
+ * const props = useSpring({ ... })
  */
 
 export const useSpring = props => {

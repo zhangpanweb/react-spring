@@ -3,12 +3,13 @@ import Ctrl from './animated/Controller'
 import { callProp, is } from './shared/helpers'
 
 /** API
- * const [props, set] = useSprings(number, (i, controller) => ({ ... }), initialProps)
- * const props = useSprings(number, ({ ... }), initialProps)
+ * const [props, set] = useSprings(number, (i, controller) => ({ ... }))
+ * const props = useSprings(number, { ... })
  */
 
-export const useSprings = (length, props, initialProps = {}) => {
+export const useSprings = (length, props) => {
   const mounted = useRef(false)
+  const firstProps = isFn ? callProp(props, 0) : props[0]
 
   // The controller maintains the animation values, starts and tops animations
   const isFn = is.fun(props)
@@ -26,7 +27,7 @@ export const useSprings = (length, props, initialProps = {}) => {
   ctrl.current = controllers
 
   // The hooks reference api gets defined here ...
-  useImperativeMethods(initialProps.ref, () => ({
+  useImperativeMethods(firstProps.ref, () => ({
     start: () => Promise.all(ctrl.current.map(c => c.start())),
     stop: () => ctrl.current.forEach(c => c.stop()),
   }))

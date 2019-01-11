@@ -6,7 +6,7 @@ import examples from './components/examples-hooks'
 import './styles.css'
 
 //const DEBUG = false
-const DEBUG = 'flip'
+const DEBUG = 'multi'
 
 ReactDOM.render(
   <DemoGrid fullscreen={!!DEBUG}>
