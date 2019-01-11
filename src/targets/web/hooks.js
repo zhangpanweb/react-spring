@@ -3,12 +3,11 @@ import * as Globals from '../../animated/Globals'
 import { interpolate } from '../../animated/AnimatedInterpolation'
 import animated from '../../animated/createAnimatedComponent'
 import { config } from '../../shared/constants'
-import { useSpring } from '../../hooks/useSpring'
-import { useTrail } from '../../hooks/useTrail'
-import { useTransition } from '../../hooks/useTransition'
-import { useKeyframes } from '../../hooks/useKeyframes'
-import { useChain } from '../../hooks/useChain'
-import { useSprings } from '../../hooks/useSprings'
+import { useSpring } from '../../useSpring'
+import { useTrail } from '../../useTrail'
+import { useTransition } from '../../useTransition'
+import { useChain } from '../../useChain'
+import { useSprings } from '../../useSprings'
 
 const domElements = [
   'a',
@@ -161,7 +160,6 @@ export {
   useSpring,
   useTrail,
   useTransition,
-  useKeyframes,
   useChain,
   useSprings,
 }

@@ -1,7 +1,7 @@
 import Animated from './Animated'
 import AnimatedValue from './AnimatedValue'
 import AnimatedArray from './AnimatedArray'
-import { now, colorNames } from './Globals'
+import { now, colorNames, requestFrame as raf } from './Globals'
 import { addController, removeController } from './FrameLoop'
 import {
   interpolateTo,
@@ -9,14 +9,11 @@ import {
   toArray,
   getValues,
   callProp,
-  shallowEqual,
+  is,
 } from '../shared/helpers'
 
 export default class Controller {
-  constructor(
-    props,
-    config = { native: true, interpolateTo: true, autoStart: true }
-  ) {
+  constructor(props) {
     this.dependents = new Set()
     this.isActive = false
     this.hasChanged = false
@@ -24,41 +21,65 @@ export default class Controller {
     this.merged = {}
     this.animations = {}
     this.interpolations = {}
-    this.animatedProps = {}
+    this.values = {}
     this.configs = []
     this.frame = undefined
     this.startTime = undefined
     this.lastTime = undefined
-    this.update({ ...props, ...config })
+    this.guid = 0
+    this.localGuid = 0
+    this.update(props)
   }
 
   update(props, ...start) {
-    this.props = { ...this.props, ...props }
-    let {
-      from = {},
-      to = {},
-      config = {},
-      delay = 0,
-      reverse,
-      attach,
-      reset,
-      immediate,
-      autoStart,
-      ref,
-    } = this.props.interpolateTo ? interpolateTo(this.props) : this.props
+    let { from, to, ...rest } = interpolateTo(props)
+    let isArray = is.arr(to)
+    let isFunction = is.fun(to)
+
+    if (isArray) {
+      let q = Promise.resolve()
+      for (let i = 0; i < to.length; i++) {
+        let index = i
+        let newProps = { ...props, to: to[index] }
+        let last = index === to.length - 1
+        q = q.then(() => this.localGuid === this.guid && this.update(newProps))
+      }
+    } else if (isFunction) {
+      let index = 0
+      let fn = to
+      Promise.resolve().then(() =>
+        fn(
+          // Next
+          p => this.localGuid === this.guid && this.update({ ...props, to: p }),
+          // Cancel
+          this.stop
+        )
+      )
+    }
+
+    // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
+    // If the view relies on certain values "from" has to be present
+    if (isArray || isFunction) {
+      this.localGuid = ++this.guid
+      to = {}
+    }
+
+    this.props = { ...this.props, ...rest }
+    let { config, delay, reverse, attach, reset, immediate, ref } = this.props
 
     // Reverse values when requested
     if (reverse) {
       ;[from, to] = [to, from]
     }
+
+    // This will collect all props that were ever set, reset merged props when necessary
+    let extra = reset ? {} : this.merged
+    this.merged = { ...from, ...extra, ...to }
+
     this.hasChanged = false
     // Attachment handling, trailed springs can "attach" themselves to a previous spring
     let target = attach && attach(this)
 
-    // Reset merged props when necessary
-    let extra = reset ? {} : this.merged
-    // This will collect all props that were ever set
-    this.merged = { ...from, ...extra, ...to }
     // Reduces input { name: value } pairs into animated values
     this.animations = Object.entries(this.merged).reduce(
       (acc, [name, value], i) => {
@@ -66,21 +87,21 @@ export default class Controller {
         let entry = (!reset && acc[name]) || {}
 
         // Figure out what the value is supposed to be
-        const isNumber = typeof value === 'number'
+        const isNumber = is.num(value)
         const isString =
-          typeof value === 'string' &&
+          is.str(value) &&
           !value.startsWith('#') &&
           !/\d/.test(value) &&
           !colorNames[value]
-        const isArray = !isNumber && !isString && Array.isArray(value)
+        const isArray = is.arr(value)
 
-        let fromValue = from[name] !== undefined ? from[name] : value
+        let fromValue = !is.und(from[name]) ? from[name] : value
         let toValue = isNumber || isArray ? value : isString ? value : 1
         let toConfig = callProp(config, name)
         if (target) toValue = target.animations[name].parent
 
         // Detect changes, animated values will be checked in the raf-loop
-        if (toConfig.decay !== void 0 || !shallowEqual(entry.changes, value)) {
+        if (!is.und(toConfig.decay) || !is.equ(entry.changes, value)) {
           this.hasChanged = true
           let parent, interpolation
           if (isNumber || isString)
@@ -144,27 +165,29 @@ export default class Controller {
 
     if (this.hasChanged) {
       this.configs = getValues(this.animations)
-      this.animatedProps = {}
+      this.values = {}
       this.interpolations = {}
       for (let key in this.animations) {
         this.interpolations[key] = this.animations[key].interpolation
-        this.animatedProps[key] = this.animations[key].interpolation.getValue()
+        this.values[key] = this.animations[key].interpolation.getValue()
       }
     }
 
     // TODO: clean up ref in controller
-    if (!ref && (autoStart || start.length)) this.start(...start)
+    /*if (!ref && start.length) this.start(...start)
     const [onEnd, onUpdate] = start
     this.onEnd = typeof onEnd === 'function' && onEnd
-    this.onUpdate = onUpdate
-    return this.getValues()
+    this.onUpdate = onUpdate*/
+
+    return this.start(...start)
   }
 
   start(onEnd, onUpdate) {
+    if (this.resolve) this.resolve({ finished: !this.isActive })
     this.startTime = now()
     if (this.isActive) this.stop()
     this.isActive = true
-    this.onEnd = typeof onEnd === 'function' && onEnd
+    this.onEnd = is.fun(onEnd) && onEnd
     this.onUpdate = onUpdate
     if (this.props.onStart) this.props.onStart()
     addController(this)
@@ -173,8 +196,8 @@ export default class Controller {
 
   stop(finished = false) {
     // Reset collected changes since the animation has been stopped cold turkey
-    if (finished)
-      getValues(this.animations).forEach(a => (a.changes = undefined))
+    //if (finished)
+    //  getValues(this.animations).forEach(a => (a.changes = undefined))
     this.debouncedOnEnd({ finished })
   }
 
@@ -184,8 +207,10 @@ export default class Controller {
     this.merged = {}
     this.animations = {}
     this.interpolations = {}
-    this.animatedProps = {}
+    this.values = {}
     this.configs = []
+    this.localGuid = 0
+    this.resolve = undefined
   }
 
   debouncedOnEnd(result) {
@@ -194,10 +219,8 @@ export default class Controller {
     const onEnd = this.onEnd
     this.onEnd = null
     if (onEnd) onEnd(result)
-    if (this.resolve) this.resolve()
-    this.resolve = null
+    if (this.resolve) this.resolve(result)
   }
 
-  getValues = () =>
-    this.props.native ? this.interpolations : this.animatedProps
+  getValues = () => this.interpolations
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import AnimatedProps from './AnimatedProps'
-import { handleRef, shallowEqual } from '../shared/helpers'
+import { handleRef, is } from '../shared/helpers'
 import * as Globals from './Globals'
 
 export default function createAnimatedComponent(Component) {
@@ -59,10 +59,7 @@ export default function createAnimatedComponent(Component) {
     shouldComponentUpdate(props) {
       const { style, ...nextProps } = props
       const { style: currentStyle, ...currentProps } = this.props
-      if (
-        !shallowEqual(currentProps, nextProps) ||
-        !shallowEqual(currentStyle, style)
-      ) {
+      if (!is.equ(currentProps, nextProps) || !is.equ(currentStyle, style)) {
         this.attachProps(props)
         return true
       }

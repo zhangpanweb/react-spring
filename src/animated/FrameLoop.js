@@ -125,15 +125,12 @@ const frameLoop = () => {
       }
 
       // Keep track of updated values only when necessary
-      if (controller.props.onFrame || !controller.props.native)
-        controller.animatedProps[config.name] = config.interpolation.getValue()
+      if (controller.props.onFrame)
+        controller.values[config.name] = config.interpolation.getValue()
     }
     // Update callbacks in the end of the frame
-    if (controller.props.onFrame || !controller.props.native) {
-      if (!controller.props.native && controller.onUpdate) controller.onUpdate()
-      if (controller.props.onFrame)
-        controller.props.onFrame(controller.animatedProps)
-    }
+    if (controller.props.onFrame) controller.props.onFrame(controller.values)
+
     // Either call onEnd or next frame
     if (isDone) {
       controllers.delete(controller)
