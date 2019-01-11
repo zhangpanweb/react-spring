@@ -207,7 +207,7 @@ export default class Controller {
     removeController(this)
     // Reset collected changes
     if (result.finished)
-      this.interpolations.forEach(a => (a.changes = undefined))
+      getValues(this.animations).forEach(a => (a.changes = undefined))
     this.isActive = false
     if (this.props.onRest && result.finished) this.props.onRest(this.merged)
     if (this.resolve) this.resolve(result)
