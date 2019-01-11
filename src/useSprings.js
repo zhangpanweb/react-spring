@@ -1,110 +1,64 @@
-import {
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-  useImperativeMethods,
-  useEffect,
-} from 'react'
+import { useMemo, useRef, useImperativeMethods, useEffect } from 'react'
 import Ctrl from './animated/Controller'
-import { callProp } from './shared/helpers'
-import { requestFrame } from './animated/Globals'
-import KeyframeController from './animated/KeyframeController'
+import { callProp, is } from './shared/helpers'
 
-export const useSpringsImpl = (type = 'default', trail = false) => (
-  length,
-  props,
-  initialProps = {}
-) => {
-  const isFn = typeof props === 'function'
-  const [, forceUpdate] = useState()
-  const args = trail ? callProp(props) : initialProps
-  const { reverse, onKeyframesHalt, onRest, ...rest } = args
+/** API
+ * const [props, set] = useSprings(number, (i, controller) => ({ ... }), initialProps)
+ * const props = useSprings(number, ({ ... }), initialProps)
+ */
+
+export const useSprings = (length, props, initialProps = {}) => {
+  const mounted = useRef(false)
+
   // The controller maintains the animation values, starts and tops animations
-  const instances = useMemo(
-    () => {
-      const instances = []
-      for (let i = 0; i < length; i++) {
-        const initProps = trail
-          ? {
-              ...rest,
-              config: callProp(rest.config, i),
-              attach: i > 0 && (() => instances[i - 1]),
-            }
-          : {
-              ...rest,
-              ...(isFn ? callProp(props, i) : props[i]),
-            }
-        instances.push(
-          type === 'keyframe'
-            ? new KeyframeController(initProps)
-            : new Ctrl(initProps)
-        )
-      }
-      return instances
-    },
+  const isFn = is.fun(props)
+  const controllers = useMemo(
+    () =>
+      new Array(length).fill().map((_, i) => {
+        const ctrl = new Ctrl()
+        ctrl.update(isFn ? callProp(props, i, ctrl) : props[i])
+        return ctrl
+      }),
     [length]
   )
-  // Destroy controllers on unmount
-  const instancesRef = useRef()
-  instancesRef.current = instances
-  useEffect(() => () => instancesRef.current.forEach(i => i.destroy()), [])
-  // Define onEnd callbacks and resolvers
-  const onHalt = onKeyframesHalt
-    ? ctrl => ({ finished }) => finished && onRest && onRest(ctrl.merged)
-    : onKeyframesHalt || (() => null)
 
-  // The hooks explcit API gets defined here ...
-  useImperativeMethods(rest.ref, () => ({
-    start: () =>
-      Promise.all(
-        Array.from(instancesRef.current).map(
-          ([, ctrl], i) =>
-            (reverse ? i === 0 : instancesRef.current.size - 1) && onHalt(ctrl)
-        )
-      ),
-    get isActive() {
-      Array.from(instancesRef.current).some(([, ctrl]) => ctrl.isActive)
+  const ctrl = useRef()
+  ctrl.current = controllers
+
+  // The hooks reference api gets defined here ...
+  useImperativeMethods(initialProps.ref, () => ({
+    start: () => Promise.all(ctrl.current.map(c => c.start())),
+    stop: () => ctrl.current.forEach(c => c.stop()),
+    get controllers() {
+      return ctrl.current
     },
-    stop: (finished = false) =>
-      instancesRef.current.forEach(([, ctrl]) => ctrl.stop(finished)),
   }))
 
-  // Defines the hooks setter, which updates the controller
-  const updateCtrl = useCallback(
-    props => {
-      instances.forEach((ctrl, i) => {
-        const last = reverse ? i === 0 : instances.length - 1 === i
-        const attachIdx = reverse ? i + 1 : i - 1
-        const attachController = instances[attachIdx]
-        const updateProps = trail
-          ? {
-              ...props,
-              config: callProp(props.config || rest.config, i),
-              attach: attachController && (() => attachController),
-            }
-          : { ...(isFn ? callProp(props, i) : props[i]) }
-        ctrl.props.reset && type === 'keyframe' && last
-          ? ctrl.updateWithForceUpdate(forceUpdate, updateProps)
-          : ctrl.update(updateProps)
-        if (!ctrl.props.ref) ctrl.start(last && onHalt(ctrl))
-        if (last && ctrl.props.reset) requestFrame(forceUpdate)
-      })
-    },
-    [instances, onRest, onKeyframesHalt, rest.ref, reverse]
+  // This function updates the controllers
+  const updateCtrl = useMemo(
+    () => updateProps =>
+      Promise.all(
+        ctrl.current.map((c, i) =>
+          c.update(isFn ? callProp(updateProps, i, c) : updateProps[i])
+        )
+      ),
+    [length]
   )
 
-  // Update next frame is props aren't functional
-  useEffect(() => void (!isFn && updateCtrl(props)))
+  // Update controller if props aren't functional
+  useEffect(() => void (mounted.current && !isFn && updateCtrl(props)))
+
+  // Update mounted flag and destroy controller on unmount
+  useEffect(
+    () => (
+      (mounted.current = true), () => ctrl.current.forEach(c => c.destroy())
+    ),
+    []
+  )
+
   // Return animated props, or, anim-props + the update-setter above
-  const propValues = instances.map(v => v.getValues())
+  const propValues = ctrl.current.map(c => c.getValues())
   return isFn
-    ? [
-        propValues,
-        updateCtrl,
-        (finished = false) => instances.forEach(ctrl => ctrl.stop(finished)),
-      ]
+    ? [propValues, updateCtrl, () => ctrl.current.forEach(c => c.stop())]
     : propValues
 }
-
-export const useSprings = useSpringsImpl()

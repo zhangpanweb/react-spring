@@ -16,6 +16,8 @@ export default function Trail() {
     reverse: !toggle,
   })
 
+  console.log(trail)
+
   return (
     <div className="trails-main" onClick={() => set(state => !state)}>
       <div>

@@ -31,10 +31,12 @@ export default class Controller {
     this.update(props)
   }
 
-  update(props, ...start) {
-    let { from, to, ...rest } = interpolateTo(props)
+  update(props = {}, ...start) {
+    let { from = {}, to = {}, ...rest } = interpolateTo(props)
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
+
+    //console.log(props)
 
     if (isArray) {
       let q = Promise.resolve()
@@ -42,7 +44,10 @@ export default class Controller {
         let index = i
         let newProps = { ...props, to: to[index] }
         let last = index === to.length - 1
-        q = q.then(() => this.localGuid === this.guid && this.update(newProps))
+        q = q.then(
+          () =>
+            this.curGuid === this.guid && this.update(interpolateTo(newProps))
+        )
       }
     } else if (isFunction) {
       let index = 0
@@ -50,7 +55,9 @@ export default class Controller {
       Promise.resolve().then(() =>
         fn(
           // Next
-          p => this.localGuid === this.guid && this.update({ ...props, to: p }),
+          p =>
+            this.localGuid === this.guid &&
+            this.update({ ...props, ...interpolateTo(p) }),
           // Cancel
           this.stop
         )
@@ -65,7 +72,15 @@ export default class Controller {
     }
 
     this.props = { ...this.props, ...rest }
-    let { config, delay, reverse, attach, reset, immediate, ref } = this.props
+    let {
+      config = {},
+      delay,
+      reverse,
+      attach,
+      reset,
+      immediate,
+      ref,
+    } = this.props
 
     // Reverse values when requested
     if (reverse) {

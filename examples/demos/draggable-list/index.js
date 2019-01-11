@@ -33,6 +33,7 @@ export default function DraggableList({
   const order = useRef([0, 1, 2, 3])
   // Create springs, each corresponds to an item, controlling its transform, scale, etc.
   const [springs, setSprings] = useSprings(items.length, fn(order.current))
+
   // Preps a gesture handler which returns drag-deltas, touched/clicked state, etc.
   const bind = useGesture(({ args: [originalIndex], down, delta: [, y] }) => {
     // Bunch of math to calculate current row and new order, it's unavoidable ¯\_(ツ)_/¯
