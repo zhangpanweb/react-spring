@@ -29,9 +29,6 @@ export const useSprings = (length, props, initialProps = {}) => {
   useImperativeMethods(initialProps.ref, () => ({
     start: () => Promise.all(ctrl.current.map(c => c.start())),
     stop: () => ctrl.current.forEach(c => c.stop()),
-    get controllers() {
-      return ctrl.current
-    },
   }))
 
   // This function updates the controllers

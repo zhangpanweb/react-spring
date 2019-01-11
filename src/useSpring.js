@@ -1,4 +1,5 @@
 import { useSprings } from './useSprings'
+import { is } from './shared/helpers'
 
 /** API
  * const [props, set] = useSpring(() => ({ ... }))

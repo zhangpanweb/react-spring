@@ -9,12 +9,9 @@ import { useSprings } from './useSprings'
 
 export const useTrail = (length, props) => {
   const mounted = useRef(false)
-
   const isFn = is.fun(props)
   const updateProps = callProp(props)
   const instances = useRef()
-
-  console.log(updateProps)
 
   const [result, set] = useSprings(length, (i, ctrl) => {
     if (i === 0) instances.current = []

@@ -31,7 +31,7 @@ export default class Controller {
     this.update(props)
   }
 
-  update(props = {}, ...start) {
+  update(props = {}) {
     let { from = {}, to = {}, ...rest } = interpolateTo(props)
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
@@ -188,32 +188,30 @@ export default class Controller {
       }
     }
 
-    // TODO: clean up ref in controller
-    /*if (!ref && start.length) this.start(...start)
-    const [onEnd, onUpdate] = start
-    this.onEnd = typeof onEnd === 'function' && onEnd
-    this.onUpdate = onUpdate*/
+    // TODO: start REF, if (!ref && start.length) this.start(...start)*/
 
-    return this.start(...start)
+    return this.start()
   }
 
-  start(onEnd, onUpdate) {
+  start() {
     if (this.resolve) this.resolve({ finished: !this.isActive })
     this.startTime = now()
     if (this.isActive) this.stop()
     this.isActive = true
-    this.onEnd = is.fun(onEnd) && onEnd
-    this.onUpdate = onUpdate
     if (this.props.onStart) this.props.onStart()
     addController(this)
     return new Promise(res => (this.resolve = res))
   }
 
-  stop(finished = false) {
-    // Reset collected changes since the animation has been stopped cold turkey
-    //if (finished)
-    //  getValues(this.animations).forEach(a => (a.changes = undefined))
-    this.debouncedOnEnd({ finished })
+  stop(result = { finished: false }) {
+    removeController(this)
+    // Reset collected changes
+    if (result.finished)
+      this.interpolations.forEach(a => (a.changes = undefined))
+    this.isActive = false
+    if (this.props.onRest && result.finished) this.props.onRest(this.merged)
+    if (this.resolve) this.resolve(result)
+    this.resolve = undefined
   }
 
   destroy() {
@@ -226,15 +224,6 @@ export default class Controller {
     this.configs = []
     this.localGuid = 0
     this.resolve = undefined
-  }
-
-  debouncedOnEnd(result) {
-    removeController(this)
-    this.isActive = false
-    const onEnd = this.onEnd
-    this.onEnd = null
-    if (onEnd) onEnd(result)
-    if (this.resolve) this.resolve(result)
   }
 
   getValues = () => this.interpolations

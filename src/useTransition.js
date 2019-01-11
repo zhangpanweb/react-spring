@@ -5,7 +5,7 @@ import {
   useMemo,
   useImperativeMethods,
 } from 'react'
-import KeyframeController from './animated/KeyframeController'
+import Ctrl from './animated/Controller'
 import { toArray, callProp } from './shared/helpers'
 import { requestFrame } from './animated/Globals'
 
@@ -102,7 +102,6 @@ function calculateDiffInItems({ prevProps, ...state }, props) {
     let pos
     // Was it the element on the left, if yes, move there ...
     if ((pos = out.findIndex(t => t.originalKey === left)) !== -1) pos += 1
-
     // And if nothing else helps, move it to the start ¯\_(ツ)_/¯
     pos = Math.max(0, pos)
     out = [...out.slice(0, pos), item, ...out.slice(pos)]
@@ -126,20 +125,7 @@ export function useTransition(props) {
   } = get(props)
 
   const mounted = useRef(false)
-  useEffect(
-    () => ((mounted.current = true), () => (mounted.current = false)),
-    []
-  )
-
-  const instances = useRef(!mounted.current && new Map([]))
-  useEffect(
-    () => () =>
-      Array.from(instances.current).map(([key, { ctrl }]) => {
-        ctrl.destroy()
-        instances.current.delete(key)
-      }),
-    []
-  )
+  const instances = useRef(!mounted.current && new Map())
 
   const [, forceUpdate] = useState()
   const state = useRef({
@@ -190,7 +176,7 @@ export function useTransition(props) {
         ({ state: slot, to, config, trail, key, item, destroyed }) => {
           !instances.current.has(key) &&
             instances.current.set(key, {
-              ctrl: new KeyframeController({
+              ctrl: new Ctrl({
                 ...callProp(
                   state.current.first
                     ? initial !== void 0
@@ -247,12 +233,20 @@ export function useTransition(props) {
           obj.ctrl.start(onEnd.bind(obj))
         )
       ),
-    stop: (finished = false) => {
+    stop: (finished = false) =>
       Array.from(instances.current).forEach(
         ([, { ctrl }]) => ctrl.isActive && ctrl.stop(finished)
-      )
-    },
+      ),
   }))
+
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      Array.from(instances.current).map(([key, { ctrl }]) => ctrl.destroy())
+      instances.clear()
+    }
+  }, [])
 
   return state.current.transitions.map(({ item, state, key }) => {
     return {

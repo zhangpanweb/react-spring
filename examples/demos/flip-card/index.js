@@ -23,6 +23,7 @@ export default function Card() {
         transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)`,
       })
     },
+    onRest: v => console.log(v),
   })
   return (
     <div className="flip-main" onClick={() => set(state => !state)}>
