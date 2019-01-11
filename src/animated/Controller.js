@@ -36,8 +36,6 @@ export default class Controller {
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
 
-    //console.log(props)
-
     if (isArray) {
       let q = Promise.resolve()
       for (let i = 0; i < to.length; i++) {
@@ -46,7 +44,7 @@ export default class Controller {
         let last = index === to.length - 1
         q = q.then(
           () =>
-            this.curGuid === this.guid && this.update(interpolateTo(newProps))
+            this.localGuid === this.guid && this.update(interpolateTo(newProps))
         )
       }
     } else if (isFunction) {

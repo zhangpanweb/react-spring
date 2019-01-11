@@ -54,8 +54,6 @@ export function useTransition(props) {
         props
       )
 
-      console.log(transitions)
-
       transitions.forEach(({ to, config, trail, key, item, destroyed }) => {
         !instances.current.has(key) &&
           instances.current.set(key, {
@@ -84,7 +82,7 @@ export function useTransition(props) {
         instance.destroyed = destroyed
         const ctrl = instance.ctrl
 
-        ctrl.update(to).then(({ finished }) => {
+        ctrl.update({ to }).then(({ finished }) => {
           const { item, key, destroyed, slot, ctrl } = instance
           if (mounted.current && finished) {
             if (destroyed && onDestroyed) onDestroyed(item)
