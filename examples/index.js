@@ -6,7 +6,7 @@ import examples from './components/examples-hooks'
 import './styles.css'
 
 //const DEBUG = false
-const DEBUG = 'trails'
+const DEBUG = 'goo'
 
 ReactDOM.render(
   <DemoGrid fullscreen={!!DEBUG}>

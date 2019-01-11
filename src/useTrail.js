@@ -14,12 +14,15 @@ export const useTrail = (length, props) => {
   const updateProps = callProp(props)
   const instances = useRef()
 
+  console.log(updateProps)
+
   const [result, set] = useSprings(length, (i, ctrl) => {
     if (i === 0) instances.current = []
     instances.current.push(ctrl)
     return {
-      ...props,
-      attach: i > 0 && (() => instances[i - 1]),
+      ...updateProps,
+      config: callProp(updateProps.config, i),
+      attach: i > 0 && (() => instances.current[i - 1]),
     }
   })
 
@@ -32,6 +35,7 @@ export const useTrail = (length, props) => {
         const attachController = instances.current[attachIdx]
         return {
           ...props,
+          config: callProp(props.config || updateProps.config, i),
           attach: attachController && (() => attachController),
         }
       }),
