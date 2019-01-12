@@ -27,7 +27,7 @@ export default class Controller {
     this.startTime = undefined
     this.lastTime = undefined
     this.guid = 0
-    this.localGuid = 0
+    this.frame = 0
     this.update(props)
   }
 
@@ -35,42 +35,46 @@ export default class Controller {
     let { from = {}, to = {}, ...rest } = interpolateTo(props)
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
-
     let queue = Promise.resolve()
+
     if (isArray) {
       for (let i = 0; i < to.length; i++) {
         const index = i
         const last = index === to.length - 1
-        const newProps = { ...props, to: to[index] }
-        if (!last) newProps.onRest = undefined
+        const fresh = { ...props, to: to[index] }
+        if (!last) fresh.onRest = undefined
         queue = queue.then(
-          () =>
-            this.localGuid === this.guid && this.update(interpolateTo(newProps))
+          () => this.frame === this.guid && this.update(interpolateTo(fresh))
         )
       }
     } else if (isFunction) {
       let index = 0
       let fn = to
-      queue = queue.then(res => {
-        fn(
-          // Next
-          (p, last = false) => {
-            if (this.localGuid === this.guid) {
-              const newProps = { ...props, ...interpolateTo(p) }
-              if (!last) newProps.onRest = undefined
-              return this.update(newProps).then(() => last && res)
-            }
-          },
-          // Cancel
-          this.stop
-        )
-      })
+      queue = queue.then(
+        () =>
+          new Promise(res =>
+            fn(
+              // Next
+              (p, last = false) => {
+                if (this.frame === this.guid) {
+                  const fresh = { ...props, ...interpolateTo(p), config }
+                  if (!last) fresh.onRest = undefined
+                  if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+                  index++
+                  return this.update(fresh).then(() => last && res())
+                }
+              },
+              // Cancel
+              () => this.stop()
+            )
+          )
+      )
     }
 
     // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
     // If the view relies on certain values "from" has to be present
     if (isArray || isFunction) {
-      this.localGuid = ++this.guid
+      this.frame = ++this.guid
       to = {}
     }
 
@@ -228,7 +232,7 @@ export default class Controller {
     this.interpolations = {}
     this.values = {}
     this.configs = []
-    this.localGuid = 0
+    this.frame = 0
     this.resolve = undefined
   }
 

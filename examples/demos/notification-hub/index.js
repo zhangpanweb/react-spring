@@ -23,10 +23,14 @@ function MessageHub({
         next({ opacity: 1, height: refMap.get(item).offsetHeight }, true)
       ),
     leave: item => async (next, cancel) => {
+      console.log('  one')
       cancelMap.set(item, cancel)
       await next({ life: '0%' })
+      console.log('  two')
       await next({ opacity: 0 })
+      console.log('  three')
       await next({ height: 0 }, true)
+      console.log('  done!')
     },
     onRest: item => setItems(state => state.filter(i => i.key !== item.key)),
     config: (item, state) =>

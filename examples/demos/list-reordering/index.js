@@ -35,9 +35,8 @@ export default function App() {
             <div className="list-reorder-cell">
               <div
                 className="list-reorder-details"
-                style={{ backgroundImage: item.css }}>
-                <h1>{item.name}</h1>
-              </div>
+                style={{ backgroundImage: item.css }}
+              />
             </div>
           </animated.div>
         ))}

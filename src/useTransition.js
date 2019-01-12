@@ -24,13 +24,24 @@ let get = props => {
 
 export function useTransition(props) {
   const {
-    items,
-    keys: _currentKeys,
-    from,
     initial,
-    onRest,
+    from,
+    enter,
+    leave,
+    update,
     onDestroyed,
+    keys,
+    items,
+    onFrame,
+    onRest,
+    onStart,
+    trail,
+    config,
+    children,
+    unique,
+    reset,
     ref,
+    ...extra
   } = get(props)
 
   const mounted = useRef(false)
@@ -39,11 +50,12 @@ export function useTransition(props) {
   const [, forceUpdate] = useState()
   const state = useRef({
     first: true,
-    activeSlots: {},
+    active: {},
     deleted: [],
     current: {},
     transitions: [],
     prevProps: null,
+    prevState: undefined,
   })
 
   // Prop changes effect
@@ -54,56 +66,51 @@ export function useTransition(props) {
         props
       )
 
-      transitions.forEach(({ to, config, trail, key, item, destroyed }) => {
-        !instances.current.has(key) &&
-          instances.current.set(key, {
-            ctrl: new Ctrl({
-              ...callProp(
-                state.current.first
-                  ? initial !== void 0
-                    ? initial || {}
-                    : from
-                  : from,
-                item
-              ),
+      transitions.forEach(
+        ({ state: name, from, to, config, trail, key, item, destroyed }) => {
+          if (!instances.current.has(key))
+            instances.current.set(key, new Ctrl())
+
+          // update the map object
+          const ctrl = instances.current.get(key)
+          if (name === 'update' || name !== state.current.active[key]) {
+            state.current.active[key] = name
+
+            const newProps = {
+              to,
+              from,
               config,
+              onRest: onRest && (values => onRest(item, name, values)),
+              onStart: onStart && (() => onStart(item, name)),
+              onFrame: onFrame && (values => onFrame(item, name, values)),
               delay: trail,
-              ref,
-            }),
-            item,
-            destroyed,
-            state,
-            key,
-          })
-
-        // update the map object
-        const instance = instances.current.get(key)
-        instance.item = item
-        instance.destroyed = destroyed
-        const ctrl = instance.ctrl
-
-        ctrl.update({ to }).then(() => {
-          const { item, key, destroyed, slot, ctrl } = instance
-          if (mounted.current) {
-            if (destroyed && onDestroyed) onDestroyed(item)
-            // Clean up internal state when items unmount, this doesn't necessrily trigger a forceUpdate
-            if (destroyed) {
-              state.current = {
-                ...state.current,
-                deleted: state.current.deleted.filter(t => t.key !== key),
-                transitions: state.current.transitions.filter(
-                  t => t.key !== key
-                ),
-              }
-
-              // Only when everything's come to rest we enforce a complete dom clean-up
-              const currentInstances = Array.from(instances.current)
-              if (!currentInstances.some(([, { ctrl }]) => ctrl.isActive))
-                requestFrame(() => forceUpdate())
+              ...extra,
             }
+
+            ctrl.update(newProps).then(() => {
+              if (mounted.current) {
+                if (destroyed && onDestroyed) onDestroyed(item)
+                // Clean up internal state when items unmount, this doesn't necessrily trigger a forceUpdate
+                if (destroyed) {
+                  //delete state.current.active[key]
+                  state.current = {
+                    ...state.current,
+                    deleted: state.current.deleted.filter(t => t.key !== key),
+                    transitions: state.current.transitions.filter(
+                      t => t.key !== key
+                    ),
+                  }
+
+                  // Only when everything's come to rest we enforce a complete dom clean-up
+                  const currentInstances = Array.from(instances.current)
+                  if (!currentInstances.some(c => c.isActive))
+                    requestFrame(() => forceUpdate())
+                }
+              }
+            })
           }
-        })
-      })
+        }
+      )
 
       state.current = {
         ...state.current,
@@ -113,44 +120,44 @@ export function useTransition(props) {
         ...rest,
       }
     },
-    [items, mapKeys(items, _currentKeys).join('')]
+    [items, mapKeys(items, keys).join('')]
   )
 
   useImperativeMethods(ref, () => ({
     start: () =>
-      Promise.all(
-        Array.from(instances.current).map(([, obj]) => obj.ctrl.start())
-      ),
-    stop: (finished = false) =>
-      Array.from(instances.current).forEach(
-        ([, { ctrl }]) => ctrl.isActive && ctrl.stop(finished)
-      ),
+      Promise.all(Array.from(instances.current).map(c => c.ctrl.start())),
+    stop: () =>
+      Array.from(instances.current).forEach(c => c.isActive && c.stop()),
   }))
 
   useEffect(() => {
     mounted.current = true
     return () => {
       mounted.current = false
-      Array.from(instances.current).map(([key, { ctrl }]) => ctrl.destroy())
+      Array.from(instances.current).map(c => c.destroy())
       instances.clear()
     }
   }, [])
 
   return state.current.transitions.map(({ item, state, key }) => {
-    return {
-      item,
-      key,
-      state,
-      props: instances.current.get(key).ctrl.getValues(),
-    }
+    return { item, key, state, props: instances.current.get(key).getValues() }
   })
 }
 
-function calculateDiffInItems({ prevProps, ...state }, props) {
+function calculateDiffInItems({ first, prevProps, ...state }, props) {
   const { keys: _keys } = get(prevProps || {})
-  const { keys, items, unique, trail = 0, update, enter, leave, config } = get(
-    props
-  )
+  const {
+    keys,
+    items,
+    initial,
+    from,
+    unique,
+    trail = 0,
+    update,
+    enter,
+    leave,
+    config,
+  } = get(props)
   const currSet = new Set(keys)
   const prevSet = new Set(_keys)
   let deleted = [...state.deleted]
@@ -186,6 +193,10 @@ function calculateDiffInItems({ prevProps, ...state }, props) {
       destroyed: false,
       config: callProp(config, item, state),
       to: callProp(enter, item),
+      from: callProp(
+        first ? (initial !== void 0 ? initial || {} : from) : from,
+        item
+      ),
     }
   })
 

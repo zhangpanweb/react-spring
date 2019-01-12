@@ -52,14 +52,3 @@
   border-radius: 5px;
   overflow: hidden;
 }
-
-.list-reorder-details h1 {
-  position: relative;
-  color: #ffffff;
-  font-size: 50em;
-  line-height: unset;
-  font-weight: 600;
-  margin: 0;
-  padding: 0;
-  white-space: nowrap;
-}

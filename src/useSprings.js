@@ -33,10 +33,13 @@ export const useSprings = (length, props) => {
   ctrl.current = controllers
 
   // The hooks reference api gets defined here ...
-  useImperativeMethods(ref, () => ({
+  const api = useImperativeMethods(ref, () => ({
     start: () => Promise.all(ctrl.current.map(c => c.start())),
     stop: () => ctrl.current.forEach(c => c.stop()),
   }))
+
+  //api.start()
+  //api.stop()
 
   // This function updates the controllers
   const updateCtrl = useMemo(
