@@ -65,7 +65,7 @@ export default class Controller {
                 }
               },
               // Cancel
-              () => this.stop()
+              () => this.stop({ finished: true })
             )
           )
       )

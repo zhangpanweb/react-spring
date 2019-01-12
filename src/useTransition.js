@@ -92,7 +92,7 @@ export function useTransition(props) {
                 if (destroyed && onDestroyed) onDestroyed(item)
                 // Clean up internal state when items unmount, this doesn't necessrily trigger a forceUpdate
                 if (destroyed) {
-                  //delete state.current.active[key]
+                  delete state.current.active[key]
                   state.current = {
                     ...state.current,
                     deleted: state.current.deleted.filter(t => t.key !== key),
