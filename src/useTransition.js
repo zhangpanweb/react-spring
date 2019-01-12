@@ -103,7 +103,7 @@ export function useTransition(props) {
 
                   // Only when everything's come to rest we enforce a complete dom clean-up
                   const currentInstances = Array.from(instances.current)
-                  if (!currentInstances.some(c => c.isActive))
+                  if (!currentInstances.some(([, c]) => c.isActive))
                     requestFrame(() => forceUpdate())
                 }
               }
@@ -125,16 +125,18 @@ export function useTransition(props) {
 
   useImperativeMethods(ref, () => ({
     start: () =>
-      Promise.all(Array.from(instances.current).map(c => c.ctrl.start())),
+      Promise.all(Array.from(instances.current).map(([, c]) => c.start())),
     stop: () =>
-      Array.from(instances.current).forEach(c => c.isActive && c.stop()),
+      Array.from(instances.current).forEach(
+        ([, c]) => c.isActive && c.stop({ finished: true })
+      ),
   }))
 
   useEffect(() => {
     mounted.current = true
     return () => {
       mounted.current = false
-      Array.from(instances.current).map(c => c.destroy())
+      Array.from(instances.current).map(([, c]) => c.destroy())
       instances.clear()
     }
   }, [])
