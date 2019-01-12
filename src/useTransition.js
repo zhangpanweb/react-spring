@@ -82,9 +82,9 @@ export function useTransition(props) {
         instance.destroyed = destroyed
         const ctrl = instance.ctrl
 
-        ctrl.update({ to }).then(({ finished }) => {
+        ctrl.update({ to }).then(() => {
           const { item, key, destroyed, slot, ctrl } = instance
-          if (mounted.current && finished) {
+          if (mounted.current) {
             if (destroyed && onDestroyed) onDestroyed(item)
             // Clean up internal state when items unmount, this doesn't necessrily trigger a forceUpdate
             if (destroyed) {
@@ -95,11 +95,12 @@ export function useTransition(props) {
                   t => t.key !== key
                 ),
               }
+
+              // Only when everything's come to rest we enforce a complete dom clean-up
+              const currentInstances = Array.from(instances.current)
+              if (!currentInstances.some(([, { ctrl }]) => ctrl.isActive))
+                requestFrame(() => forceUpdate())
             }
-            // Only when everything's come to rest we enforce a complete dom clean-up
-            const currentInstances = Array.from(instances.current)
-            if (!currentInstances.some(([, { ctrl }]) => ctrl.isActive))
-              requestFrame(() => forceUpdate())
           }
         })
       })

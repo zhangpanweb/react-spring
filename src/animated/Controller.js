@@ -36,13 +36,14 @@ export default class Controller {
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
 
+    let queue = Promise.resolve()
     if (isArray) {
-      let q = Promise.resolve()
       for (let i = 0; i < to.length; i++) {
-        let index = i
-        let newProps = { ...props, to: to[index] }
-        let last = index === to.length - 1
-        q = q.then(
+        const index = i
+        const last = index === to.length - 1
+        const newProps = { ...props, to: to[index] }
+        if (!last) newProps.onRest = undefined
+        queue = queue.then(
           () =>
             this.localGuid === this.guid && this.update(interpolateTo(newProps))
         )
@@ -50,16 +51,20 @@ export default class Controller {
     } else if (isFunction) {
       let index = 0
       let fn = to
-      Promise.resolve().then(() =>
+      queue = queue.then(res => {
         fn(
           // Next
-          p =>
-            this.localGuid === this.guid &&
-            this.update({ ...props, ...interpolateTo(p) }),
+          (p, last = false) => {
+            if (this.localGuid === this.guid) {
+              const newProps = { ...props, ...interpolateTo(p) }
+              if (!last) newProps.onRest = undefined
+              this.update(newProps).then(() => last && res)
+            }
+          },
           // Cancel
           this.stop
         )
-      )
+      })
     }
 
     // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
@@ -188,11 +193,11 @@ export default class Controller {
 
     // TODO: start REF, if (!ref && start.length) this.start(...start)*/
 
-    return this.start()
+    // Either return the async queue, or start a new animation
+    return isArray || isFunction ? queue : this.start()
   }
 
   start() {
-    if (this.resolve) this.resolve({ finished: !this.isActive })
     this.startTime = now()
     if (this.isActive) this.stop()
     this.isActive = true
@@ -207,9 +212,12 @@ export default class Controller {
     if (result.finished)
       getValues(this.animations).forEach(a => (a.changes = undefined))
     this.isActive = false
+
     if (this.props.onRest && result.finished) this.props.onRest(this.merged)
-    if (this.resolve) this.resolve(result)
-    this.resolve = undefined
+    if (this.resolve) {
+      this.resolve(this.merged)
+      this.resolve = undefined
+    }
   }
 
   destroy() {
