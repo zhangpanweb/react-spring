@@ -58,7 +58,7 @@ export default class Controller {
             if (this.localGuid === this.guid) {
               const newProps = { ...props, ...interpolateTo(p) }
               if (!last) newProps.onRest = undefined
-              this.update(newProps).then(() => last && res)
+              return this.update(newProps).then(() => last && res)
             }
           },
           // Cancel

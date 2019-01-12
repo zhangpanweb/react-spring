@@ -19,11 +19,14 @@ export default function Card() {
     ],*/
     to: async next => {
       await next({ transform: `perspective(1400px) rotateX(45deg)` })
-      await next({
-        transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)`,
-      })
+      await next(
+        {
+          transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)`,
+        },
+        true
+      )
     },
-    onRest: v => console.log(v),
+    //onRest: v => console.log(v),
   })
   return (
     <div className="flip-main" onClick={() => set(state => !state)}>

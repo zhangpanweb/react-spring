@@ -9,17 +9,23 @@ import { callProp, is } from './shared/helpers'
 
 export const useSprings = (length, props) => {
   const mounted = useRef(false)
-  const firstProps = isFn ? callProp(props, 0) : props[0]
+  const isFn = is.fun(props)
 
   // The controller maintains the animation values, starts and tops animations
-  const isFn = is.fun(props)
-  const controllers = useMemo(
-    () =>
-      new Array(length).fill().map((_, i) => {
-        const ctrl = new Ctrl()
-        ctrl.update(isFn ? callProp(props, i, ctrl) : props[i])
-        return ctrl
-      }),
+  const [controllers, ref] = useMemo(
+    () => {
+      let ref
+      return [
+        new Array(length).fill().map((_, i) => {
+          const ctrl = new Ctrl()
+          const newProps = isFn ? callProp(props, i, ctrl) : props[i]
+          if (i === 0) ref = newProps.ref
+          ctrl.update(newProps)
+          return ctrl
+        }),
+        ref,
+      ]
+    },
     [length]
   )
 
@@ -27,7 +33,7 @@ export const useSprings = (length, props) => {
   ctrl.current = controllers
 
   // The hooks reference api gets defined here ...
-  useImperativeMethods(firstProps.ref, () => ({
+  useImperativeMethods(ref, () => ({
     start: () => Promise.all(ctrl.current.map(c => c.start())),
     stop: () => ctrl.current.forEach(c => c.stop()),
   }))

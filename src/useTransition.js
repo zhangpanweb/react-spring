@@ -119,9 +119,7 @@ export function useTransition(props) {
   useImperativeMethods(ref, () => ({
     start: () =>
       Promise.all(
-        Array.from(instances.current).map(([, obj]) =>
-          obj.ctrl.start(onEnd.bind(obj))
-        )
+        Array.from(instances.current).map(([, obj]) => obj.ctrl.start())
       ),
     stop: (finished = false) =>
       Array.from(instances.current).forEach(
