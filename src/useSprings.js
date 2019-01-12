@@ -34,7 +34,7 @@ export const useSprings = (length, props) => {
 
   // The hooks reference api gets defined here ...
   const api = useImperativeMethods(ref, () => ({
-    start: () => Promise.all(ctrl.current.map(c => c.start())),
+    start: () => Promise.all(ctrl.current.map(c => c.start(true))),
     stop: () => ctrl.current.forEach(c => c.stop(/*{ finished: true }*/)),
   }))
 

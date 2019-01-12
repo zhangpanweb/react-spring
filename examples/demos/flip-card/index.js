@@ -13,11 +13,11 @@ export default function Card() {
       opacity: flipped ? 1 : 0,
       transform: `perspective(1400px) rotateX(0deg)`,
     },
-    /*[
+    to: [
       { transform: `perspective(1400px) rotateX(45deg)` },
       { transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)` },
-    ],*/
-    to: async next => {
+    ],
+    /*async next => {
       await next({ transform: `perspective(1400px) rotateX(45deg)` })
       await next(
         {
@@ -25,7 +25,7 @@ export default function Card() {
         },
         true
       )
-    },
+    },*/
     //onRest: v => console.log(v),
   })
   return (

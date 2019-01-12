@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTransition, animated } from 'react-spring/hooks'
 import shuffle from 'lodash/shuffle'
 import data from './data'
@@ -6,6 +6,7 @@ import './styles.css'
 
 export default function App() {
   const [rows, set] = useState(data)
+  useEffect(() => void setInterval(() => set(shuffle), 3000), [])
 
   let height = 0
   const transitions = useTransition({
@@ -22,7 +23,7 @@ export default function App() {
   })
 
   return (
-    <div className="list-reorder-scroll" onClick={() => set(shuffle)}>
+    <div className="list-reorder-scroll">
       <div className="list-reorder" style={{ height: height + 15 }}>
         {transitions.map(({ item, props: { y, ...rest }, key }, index) => (
           <animated.div

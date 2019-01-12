@@ -27,6 +27,7 @@ export default class Controller {
     this.lastTime = undefined
     this.guid = 0
     this.local = 0
+    this.async = undefined
     this.update(props)
   }
 
@@ -34,48 +35,15 @@ export default class Controller {
     let { from = {}, to = {}, ...rest } = interpolateTo(props)
     let isArray = is.arr(to)
     let isFunction = is.fun(to)
-    let queue = Promise.resolve()
 
-    if (isArray) {
-      for (let i = 0; i < to.length; i++) {
-        const index = i
-        const last = index === to.length - 1
-        const fresh = { ...props, to: to[index] }
-        if (!last) fresh.onRest = undefined
-        queue = queue.then(
-          () => this.local === this.guid && this.update(interpolateTo(fresh))
-        )
-      }
-    } else if (isFunction) {
-      let index = 0
-      let fn = to
-      queue = queue.then(
-        () =>
-          new Promise(res =>
-            fn(
-              // Next
-              (p, last = false) => {
-                if (this.local === this.guid) {
-                  const fresh = { ...props, ...interpolateTo(p), config }
-                  if (!last) fresh.onRest = undefined
-                  if (is.arr(fresh.config)) fresh.config = fresh.config[index]
-                  index++
-                  return this.update(fresh).then(() => last && res())
-                }
-              },
-              // Cancel
-              () => this.stop({ finished: true })
-            )
-          )
-      )
-    }
-
-    // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
-    // If the view relies on certain values "from" has to be present
+    // Test again async "to"
     if (isArray || isFunction) {
       this.local = ++this.guid
+      // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
+      // If the view relies on certain values "from" has to be present
+      this.async = { to, props }
       to = {}
-    }
+    } else this.async = undefined
 
     this.props = { ...this.props, ...rest }
     let {
@@ -194,32 +162,82 @@ export default class Controller {
       }
     }
 
-    // Do not attempt to start if this is a referenced controller
-    if (ref) return
-    // Either return the async queue, or start a new animation
-    return isArray || isFunction ? queue : this.start()
+    return this.start()
   }
 
-  start() {
-    this.startTime = now()
-    if (this.isActive) this.stop()
-    this.isActive = true
-    if (this.props.onStart) this.props.onStart()
-    addController(this)
-    return new Promise(res => (this.resolve = res))
+  // When the controller is references, it won't start on its own, even thought every update calls start and receives
+  // a promise. The animation can then only be started by ref, which enforces it by calling start(true)
+  start(force = false) {
+    // This promise tracks the animation until onRest
+    const promise = new Promise(res => (this.resolve = res))
+    // Return immediately if the controller bears a reference
+    if (this.props.ref && force === false) return promise
+    // Stop all occuring animations (without resetting change-detection)
+    this.stop()
+
+    if (this.async) {
+      let { to, props } = this.async
+      let queue = Promise.resolve()
+      if (is.arr(to)) {
+        for (let i = 0; i < to.length; i++) {
+          const index = i
+          const last = index === to.length - 1
+          const fresh = { ...props, to: to[index] }
+          if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+          if (!last) fresh.onRest = undefined
+          queue = queue.then(
+            () => this.local === this.guid && this.update(interpolateTo(fresh))
+          )
+        }
+      } else if (is.fun(to)) {
+        let index = 0
+        let fn = to
+        queue = queue.then(
+          () =>
+            new Promise(res =>
+              fn(
+                // Next
+                (p, last = false) => {
+                  if (this.local === this.guid) {
+                    const fresh = { ...props, ...interpolateTo(p) }
+                    if (!last) fresh.onRest = undefined
+                    if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+                    index++
+                    return this.update(fresh).then(() => last && res())
+                  }
+                },
+                // Cancel
+                () => this.stop({ finished: true })
+              )
+            )
+        )
+      }
+      return queue.then(this.resolve)
+    } else {
+      // Set start time tag
+      this.startTime = now()
+      if (this.isActive) this.stop()
+      this.isActive = true
+      if (this.props.onStart) this.props.onStart()
+      addController(this)
+    }
+    return promise
   }
 
   stop(result = { finished: false }) {
-    removeController(this)
-    // Reset collected changes
-    if (result.finished)
-      getValues(this.animations).forEach(a => (a.changes = undefined))
     this.isActive = false
+    removeController(this)
 
-    if (this.props.onRest && result.finished) this.props.onRest(this.merged)
-    if (this.resolve) {
-      this.resolve(this.merged)
-      this.resolve = undefined
+    if (result.finished) {
+      // Reset collected changes
+      getValues(this.animations).forEach(a => (a.changes = undefined))
+      // Call onRest if present
+      if (this.props.onRest) this.props.onRest(this.merged)
+
+      if (this.resolve) {
+        this.resolve(this.merged)
+        this.resolve = undefined
+      }
     }
   }
 

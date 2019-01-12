@@ -73,6 +73,7 @@ export function useTransition(props) {
 
           // update the map object
           const ctrl = instances.current.get(key)
+
           if (name === 'update' || name !== state.current.active[key]) {
             state.current.active[key] = name
 
@@ -87,24 +88,32 @@ export function useTransition(props) {
               ...extra,
             }
 
+            //console.log(name, item.name, destroyed)
             ctrl.update(newProps).then(() => {
+              //console.log('  promise.res > ', name, item.name, destroyed)
               if (mounted.current) {
                 if (destroyed && onDestroyed) onDestroyed(item)
-                // Clean up internal state when items unmount, this doesn't necessrily trigger a forceUpdate
+                // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
                 if (destroyed) {
                   delete state.current.active[key]
                   state.current = {
                     ...state.current,
+                    flagged: true,
                     deleted: state.current.deleted.filter(t => t.key !== key),
                     transitions: state.current.transitions.filter(
                       t => t.key !== key
                     ),
                   }
+                }
 
-                  // Only when everything's come to rest we enforce a complete dom clean-up
-                  const currentInstances = Array.from(instances.current)
-                  if (!currentInstances.some(([, c]) => c.isActive))
-                    requestFrame(() => forceUpdate())
+                // Only when everything's come to rest we enforce a complete dom clean-up
+                const currentInstances = Array.from(instances.current)
+                if (
+                  state.current.flagged &&
+                  !currentInstances.some(([, c]) => c.isActive)
+                ) {
+                  requestFrame(() => forceUpdate())
+                  state.current.flagged = false
                 }
               }
             })
@@ -125,7 +134,7 @@ export function useTransition(props) {
 
   useImperativeMethods(ref, () => ({
     start: () =>
-      Promise.all(Array.from(instances.current).map(([, c]) => c.start())),
+      Promise.all(Array.from(instances.current).map(([, c]) => c.start(true))),
     stop: () =>
       Array.from(instances.current).forEach(
         ([, c]) => c.isActive && c.stop(/*{ finished: true }*/)
