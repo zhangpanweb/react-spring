@@ -128,7 +128,7 @@ export function useTransition(props) {
       Promise.all(Array.from(instances.current).map(([, c]) => c.start())),
     stop: () =>
       Array.from(instances.current).forEach(
-        ([, c]) => c.isActive && c.stop({ finished: true })
+        ([, c]) => c.isActive && c.stop(/*{ finished: true }*/)
       ),
   }))
 

@@ -23,11 +23,10 @@ export default class Controller {
     this.interpolations = {}
     this.values = {}
     this.configs = []
-    this.frame = undefined
     this.startTime = undefined
     this.lastTime = undefined
     this.guid = 0
-    this.frame = 0
+    this.local = 0
     this.update(props)
   }
 
@@ -44,7 +43,7 @@ export default class Controller {
         const fresh = { ...props, to: to[index] }
         if (!last) fresh.onRest = undefined
         queue = queue.then(
-          () => this.frame === this.guid && this.update(interpolateTo(fresh))
+          () => this.local === this.guid && this.update(interpolateTo(fresh))
         )
       }
     } else if (isFunction) {
@@ -56,7 +55,7 @@ export default class Controller {
             fn(
               // Next
               (p, last = false) => {
-                if (this.frame === this.guid) {
+                if (this.local === this.guid) {
                   const fresh = { ...props, ...interpolateTo(p), config }
                   if (!last) fresh.onRest = undefined
                   if (is.arr(fresh.config)) fresh.config = fresh.config[index]
@@ -74,7 +73,7 @@ export default class Controller {
     // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
     // If the view relies on certain values "from" has to be present
     if (isArray || isFunction) {
-      this.frame = ++this.guid
+      this.local = ++this.guid
       to = {}
     }
 
@@ -195,8 +194,8 @@ export default class Controller {
       }
     }
 
-    // TODO: start REF, if (!ref && start.length) this.start(...start)*/
-
+    // Do not attempt to start if this is a referenced controller
+    if (ref) return
     // Either return the async queue, or start a new animation
     return isArray || isFunction ? queue : this.start()
   }
@@ -232,7 +231,7 @@ export default class Controller {
     this.interpolations = {}
     this.values = {}
     this.configs = []
-    this.frame = 0
+    this.local = 0
     this.resolve = undefined
   }
 

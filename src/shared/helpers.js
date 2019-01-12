@@ -10,6 +10,8 @@ export const is = {
   num: a => typeof a === 'number',
   und: a => a === void 0,
   nul: a => a === null,
+  set: a => a instanceof Set,
+  map: a => a instanceof Map,
   equ(a, b) {
     if (typeof a !== typeof b) return false
     if (is.str(a) || is.num(a)) return a === b
