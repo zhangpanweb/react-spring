@@ -9,7 +9,7 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
 
   useEffect(() => {
     local.current = ++guid
-    //refs.forEach(({ current }) => current && current.stop())
+    //refs.forEach(({ current }) => current && current.stop({ finished: true }))
     if (timeSteps) {
       frames.current.forEach(clearTimeout)
       frames.current = []

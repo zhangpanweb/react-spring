@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useTransition, animated } from 'react-spring/hooks'
 import './styles.css'
 
@@ -17,6 +17,11 @@ const pages = [
 ]
 
 export default function App() {
+  const [, fU] = useState()
+  // It should not matter if the component is re-rendered, it shouldn't drop out of sync
+  useEffect(() => void setInterval(fU, 100), [])
+  console.log('r')
+
   const [index, set] = useState(0)
   const onClick = useCallback(
     () => set(state => (state === 2 ? 0 : state + 1)),

@@ -187,7 +187,9 @@ export default class Controller {
               fromValues: toArray(parent.getValue()),
               toValues: toArray(target ? toValue.getPayload() : toValue),
               immediate: callProp(immediate, name),
-              delay: withDefault(toConfig.delay, delay || 0),
+              delay: this.isActive
+                ? 0
+                : withDefault(toConfig.delay, delay || 0),
               initialVelocity: withDefault(toConfig.velocity, 0),
               clamp: withDefault(toConfig.clamp, false),
               precision: withDefault(toConfig.precision, 0.01),
