@@ -37,7 +37,6 @@ export function useTransition(props) {
     onStart,
     trail,
     config,
-    children,
     unique,
     reset,
     ref,
@@ -81,16 +80,18 @@ export function useTransition(props) {
               to,
               from,
               config,
+              ref,
               onRest: onRest && (values => onRest(item, name, values)),
               onStart: onStart && (() => onStart(item, name)),
               onFrame: onFrame && (values => onFrame(item, name, values)),
               delay: trail,
+              reset: reset && name === 'enter',
               ...extra,
             }
 
-            //console.log(name, item.name, destroyed)
+            //console.log(ctrl.id, name, item.name, destroyed)
             ctrl.update(newProps).then(() => {
-              //console.log('  promise.res > ', name, item.name, destroyed)
+              //console.log('  promise.res > ', ctrl.id, name, item.name, destroyed)
               if (mounted.current) {
                 if (destroyed && onDestroyed) onDestroyed(item)
                 // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
@@ -100,9 +101,9 @@ export function useTransition(props) {
                     ...state.current,
                     flagged: true,
                     deleted: state.current.deleted.filter(t => t.key !== key),
-                    transitions: state.current.transitions.filter(
+                    /*transitions: state.current.transitions.filter(
                       t => t.key !== key
-                    ),
+                    ),*/
                   }
                 }
 

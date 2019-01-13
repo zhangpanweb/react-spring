@@ -12,8 +12,10 @@ import {
   is,
 } from '../shared/helpers'
 
+let G = 0
 export default class Controller {
   constructor(props) {
+    this.id = 'ctrl' + G++
     this.dependents = new Set()
     this.isActive = false
     this.hasChanged = false
@@ -27,24 +29,99 @@ export default class Controller {
     this.lastTime = undefined
     this.guid = 0
     this.local = 0
-    this.async = undefined
+    this.last = true
+
+    this.currentTask = undefined
     this.update(props)
   }
 
+  pushTask(task) {
+    this.currentTask = task
+  }
+
+  popTask(promise) {
+    if (this.currentTask) {
+      this.currentTask(promise)
+      this.currentTask = undefined
+    }
+  }
+
+  runAsync(props, resolve) {
+    this.local = ++this.guid
+    // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
+    // If the view relies on certain values "from" has to be present
+    let queue = Promise.resolve()
+    if (is.arr(props.to)) {
+      for (let i = 0; i < props.to.length; i++) {
+        const index = i
+        const last = index === props.to.length - 1
+        const fresh = { ...props, to: props.to[index] }
+        if (!last) fresh.onRest = undefined
+        if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+        queue = queue.then(
+          () => this.local === this.guid && this.update(interpolateTo(fresh))
+        )
+      }
+    } else if (is.fun(props.to)) {
+      let index = 0
+      let fn = props.to
+      queue = queue.then(
+        () =>
+          new Promise(res =>
+            fn(
+              // Next
+              (p, last = false) => {
+                if (this.local === this.guid) {
+                  const fresh = { ...props, ...interpolateTo(p) }
+                  if (!last) fresh.onRest = undefined
+                  if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+                  index++
+                  return this.update(fresh).then(() => last && res())
+                }
+              },
+              // Cancel
+              () => this.stop({ finished: true })
+            )
+          )
+      )
+    }
+    // Resolve outer promise when done
+    queue.then(resolve)
+  }
+
   update(props = {}) {
+    let isArr = is.arr(props.to)
+    let isFun = is.fun(props.to)
+
+    //console.log(props)
+
+    let resolve
+    let promise = new Promise(r => (resolve = r))
+
+    if (isArr || isFun) {
+      // The to-props is either a function or an array, this means it's going to
+      // be processed async, therefore we have to inject an empty to-prop for now
+      // and let the asnyc function update itself
+      this.diff({ ...props, to: {} })
+      this.pushTask(() => this.runAsync(props, resolve))
+      if (!props.ref) this.start()
+      return promise
+    } else {
+      this.diff(props)
+      if (props.ref) {
+        // If the controller bears a reference, then the animation won't start right away
+        // So we return a promise and resolve it later
+        this.pushTask(promise => promise.then(resolve))
+        return promise
+      }
+    }
+
+    // Only start an animation if the controller bears no reference
+    return this.start()
+  }
+
+  diff(props) {
     let { from = {}, to = {}, ...rest } = interpolateTo(props)
-    let isArray = is.arr(to)
-    let isFunction = is.fun(to)
-
-    // Test again async "to"
-    if (isArray || isFunction) {
-      this.local = ++this.guid
-      // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
-      // If the view relies on certain values "from" has to be present
-      this.async = { to, props }
-      to = {}
-    } else this.async = undefined
-
     this.props = { ...this.props, ...rest }
     let {
       config = {},
@@ -161,66 +238,20 @@ export default class Controller {
         this.values[key] = this.animations[key].interpolation.getValue()
       }
     }
-
-    return this.start()
   }
 
-  // When the controller is references, it won't start on its own, even thought every update calls start and receives
-  // a promise. The animation can then only be started by ref, which enforces it by calling start(true)
-  start(force = false) {
-    // This promise tracks the animation until onRest
-    const promise = new Promise(res => (this.resolve = res))
-    // Return immediately if the controller bears a reference
-    if (this.props.ref && force === false) return promise
+  start() {
     // Stop all occuring animations (without resetting change-detection)
     this.stop()
-
-    if (this.async) {
-      let { to, props } = this.async
-      let queue = Promise.resolve()
-      if (is.arr(to)) {
-        for (let i = 0; i < to.length; i++) {
-          const index = i
-          const last = index === to.length - 1
-          const fresh = { ...props, to: to[index] }
-          if (is.arr(fresh.config)) fresh.config = fresh.config[index]
-          if (!last) fresh.onRest = undefined
-          queue = queue.then(
-            () => this.local === this.guid && this.update(interpolateTo(fresh))
-          )
-        }
-      } else if (is.fun(to)) {
-        let index = 0
-        let fn = to
-        queue = queue.then(
-          () =>
-            new Promise(res =>
-              fn(
-                // Next
-                (p, last = false) => {
-                  if (this.local === this.guid) {
-                    const fresh = { ...props, ...interpolateTo(p) }
-                    if (!last) fresh.onRest = undefined
-                    if (is.arr(fresh.config)) fresh.config = fresh.config[index]
-                    index++
-                    return this.update(fresh).then(() => last && res())
-                  }
-                },
-                // Cancel
-                () => this.stop({ finished: true })
-              )
-            )
-        )
-      }
-      return queue.then(this.resolve)
-    } else {
-      // Set start time tag
-      this.startTime = now()
-      if (this.isActive) this.stop()
-      this.isActive = true
-      if (this.props.onStart) this.props.onStart()
-      addController(this)
-    }
+    // This promise tracks the animation until onRest
+    const promise = new Promise(res => (this.resolve = res))
+    // Execute tasks that could have crept up
+    this.popTask(promise)
+    // Set start-flags and add the controller to the frameloop
+    this.startTime = now()
+    this.isActive = true
+    if (this.props.onStart) this.props.onStart()
+    addController(this)
     return promise
   }
 
@@ -232,12 +263,15 @@ export default class Controller {
       // Reset collected changes
       getValues(this.animations).forEach(a => (a.changes = undefined))
       // Call onRest if present
-      if (this.props.onRest) this.props.onRest(this.merged)
-
-      if (this.resolve) {
-        this.resolve(this.merged)
-        this.resolve = undefined
+      if (this.props.onRest) {
+        //console.log(this.id, 'done')
+        this.props.onRest(this.merged)
       }
+    }
+
+    if (this.resolve) {
+      this.resolve()
+      this.resolve = undefined
     }
   }
 

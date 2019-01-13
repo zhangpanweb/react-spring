@@ -3,8 +3,8 @@ import { useSpring, animated as a } from 'react-spring/hooks'
 import './styles.css'
 
 export default function Card() {
-  console.log('Card')
   const [flipped, set] = useState(true)
+  console.log('flipped', flipped)
   const { transform, opacity } = useSpring({
     config: { mass: 6, tension: 500, friction: 80 },
     /*opacity: flipped ? 1 : 0,
@@ -26,7 +26,7 @@ export default function Card() {
         true
       )
     },*/
-    //onRest: v => console.log(v),
+    onRest: v => console.log(v),
   })
   return (
     <div className="flip-main" onClick={() => set(state => !state)}>

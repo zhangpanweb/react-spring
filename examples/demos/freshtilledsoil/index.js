@@ -63,7 +63,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     ref: containerRef,
   })
 
-  console.log(items)
+  console.log('TransitionGrid', items)
 
   const itemsRef = useRef()
   const itemsTransition = useTransition({
@@ -76,10 +76,14 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     ref: itemsRef,
   })
 
-  useChain(visible ? [containerRef, itemsRef] : [itemsRef, containerRef], [
+  useChain(
+    visible
+      ? [containerRef, itemsRef]
+      : [itemsRef, containerRef] /*, [
     0,
     visible ? 0.1 : 0.8,
-  ])
+  ]*/
+  )
 
   return (
     <div style={{ padding: '2rem' }}>
