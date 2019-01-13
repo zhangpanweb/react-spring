@@ -4,9 +4,12 @@ let guid = 0
 export function useChain(refs, timeSteps, timeFrame = 1000) {
   const frames = useRef([])
   const local = useRef()
+
+  console.log(refs)
+
   useEffect(() => {
     local.current = ++guid
-    refs.forEach(({ current }) => current && current.stop())
+    //refs.forEach(({ current }) => current && current.stop())
     if (timeSteps) {
       frames.current.forEach(clearTimeout)
       frames.current = []
@@ -16,7 +19,6 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
         )
       )
     } else {
-      //console.log('start refs')
       refs.reduce(
         (q, { current }) =>
           (q = q.then(
@@ -25,5 +27,5 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
         Promise.resolve()
       )
     }
-  }, refs)
+  })
 }

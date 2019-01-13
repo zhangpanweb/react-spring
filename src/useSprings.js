@@ -20,7 +20,7 @@ export const useSprings = (length, props) => {
           const ctrl = new Ctrl()
           const newProps = isFn ? callProp(props, i, ctrl) : props[i]
           if (i === 0) ref = newProps.ref
-          ctrl.update(newProps)
+          ctrl.update(newProps, !!ref)
           return ctrl
         }),
         ref,
@@ -34,8 +34,12 @@ export const useSprings = (length, props) => {
 
   // The hooks reference api gets defined here ...
   const api = useImperativeMethods(ref, () => ({
-    start: () => Promise.all(ctrl.current.map(c => c.start(true))),
-    stop: () => ctrl.current.forEach(c => c.stop(/*{ finished: true }*/)),
+    start: () =>
+      Promise.all(ctrl.current.map(c => new Promise(r => c.start(r)))),
+    stop: () => ctrl.current.forEach(c => c.stop()),
+    get controllers() {
+      return ctrl.current
+    },
   }))
 
   // This function updates the controllers
@@ -43,7 +47,7 @@ export const useSprings = (length, props) => {
     () => updateProps =>
       Promise.all(
         ctrl.current.map((c, i) =>
-          c.update(isFn ? callProp(updateProps, i, c) : updateProps[i])
+          c.update(isFn ? callProp(updateProps, i, c) : updateProps[i], !!ref)
         )
       ),
     [length]

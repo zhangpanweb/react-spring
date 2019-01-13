@@ -6,7 +6,7 @@ import examples from './components/examples-hooks'
 import './styles.css'
 
 //const DEBUG = false
-const DEBUG = 'chain'
+const DEBUG = 'fresh'
 
 ReactDOM.render(
   <DemoGrid fullscreen={!!DEBUG}>

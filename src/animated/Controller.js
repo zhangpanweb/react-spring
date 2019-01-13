@@ -30,23 +30,10 @@ export default class Controller {
     this.guid = 0
     this.local = 0
     this.last = true
-
-    this.currentTask = undefined
-    this.update(props)
+    this.update(props, true)
   }
 
-  pushTask(task) {
-    this.currentTask = task
-  }
-
-  popTask(promise) {
-    if (this.currentTask) {
-      this.currentTask(promise)
-      this.currentTask = undefined
-    }
-  }
-
-  runAsync(props, resolve) {
+  runAsync(props) {
     this.local = ++this.guid
     // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
     // If the view relies on certain values "from" has to be present
@@ -89,38 +76,26 @@ export default class Controller {
     queue.then(resolve)
   }
 
-  update(props = {}) {
+  update(props = {}, paused) {
     let isArr = is.arr(props.to)
     let isFun = is.fun(props.to)
-
-    //console.log(props)
-
-    let resolve
-    let promise = new Promise(r => (resolve = r))
 
     if (isArr || isFun) {
       // The to-props is either a function or an array, this means it's going to
       // be processed async, therefore we have to inject an empty to-prop for now
       // and let the asnyc function update itself
       this.diff({ ...props, to: {} })
-      this.pushTask(() => this.runAsync(props, resolve))
-      if (!props.ref) this.start()
-      return promise
+      raf(() => this.runAsync(props))
     } else {
       this.diff(props)
-      if (props.ref) {
-        // If the controller bears a reference, then the animation won't start right away
-        // So we return a promise and resolve it later
-        this.pushTask(promise => promise.then(resolve))
-        return promise
-      }
     }
 
     // Only start an animation if the controller bears no reference
-    return this.start()
+    return !paused && this.start()
   }
 
   diff(props) {
+    //console.log('diff', props)
     let { from = {}, to = {}, ...rest } = interpolateTo(props)
     this.props = { ...this.props, ...rest }
     let {
@@ -240,38 +215,32 @@ export default class Controller {
     }
   }
 
-  start() {
-    // Stop all occuring animations (without resetting change-detection)
-    this.stop()
-    // This promise tracks the animation until onRest
-    const promise = new Promise(res => (this.resolve = res))
-    // Execute tasks that could have crept up
-    this.popTask(promise)
+  start(onEnd) {
     // Set start-flags and add the controller to the frameloop
     this.startTime = now()
+    // Stop all occuring animations (without resetting change-detection)
+    if (this.isActive) this.stop()
     this.isActive = true
+    if (onEnd) this.onEnd = onEnd
     if (this.props.onStart) this.props.onStart()
     addController(this)
-    return promise
   }
 
   stop(result = { finished: false }) {
     this.isActive = false
+    this.hasChanged = false
     removeController(this)
 
-    if (result.finished) {
-      // Reset collected changes
+    // Reset collected changes when changes have been made
+    if (result.finished)
       getValues(this.animations).forEach(a => (a.changes = undefined))
-      // Call onRest if present
-      if (this.props.onRest) {
-        //console.log(this.id, 'done')
-        this.props.onRest(this.merged)
-      }
-    }
 
-    if (this.resolve) {
-      this.resolve()
-      this.resolve = undefined
+    // Call onRest if present
+    if (this.props.onRest) this.props.onRest(this.merged)
+
+    if (this.onEnd) {
+      this.onEnd(result)
+      this.onEnd = undefined
     }
   }
 
@@ -284,7 +253,6 @@ export default class Controller {
     this.values = {}
     this.configs = []
     this.local = 0
-    this.resolve = undefined
   }
 
   getValues = () => this.interpolations

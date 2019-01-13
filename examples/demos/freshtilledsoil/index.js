@@ -57,53 +57,56 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
   const containerTransition = useTransition({
     config: config.stiff,
     items: visible,
-    from: { opacity: 0, transform: 'translateX(-1000px)' },
-    enter: { opacity: 1, transform: 'translateX(0)' },
-    leave: { opacity: 0, transform: 'translateX(1000px)' },
+    from: { opacity: 0, x: -1000 },
+    enter: { opacity: 1, x: 0 },
+    leave: { opacity: 0, x: 1000 },
     ref: containerRef,
   })
-
-  console.log('TransitionGrid', items)
 
   const itemsRef = useRef()
   const itemsTransition = useTransition({
     config: config.stiff,
-    from: { opacity: 0, transform: 'scale(0)' },
-    enter: { opacity: 1, transform: 'scale(1)' },
-    leave: { opacity: 0, transform: 'scale(0)' },
+    from: { opacity: 0, scale: 0 },
+    enter: { opacity: 1, scale: 1 },
+    leave: { opacity: 0, scale: 0 },
     items: visible ? items : [],
     trail: 400 / items.length,
+    unique: true,
     ref: itemsRef,
   })
 
-  useChain(
-    visible
-      ? [containerRef, itemsRef]
-      : [itemsRef, containerRef] /*, [
+  useChain(visible ? [containerRef, itemsRef] : [itemsRef, containerRef], [
     0,
-    visible ? 0.1 : 0.8,
-  ]*/
-  )
+    0.5,
+  ])
 
   return (
     <div style={{ padding: '2rem' }}>
       {containerTransition.map(
-        ({ item, key, props }) =>
+        ({ item, key, props: { x, opacity } }) =>
           item && (
             <animated.div
               key={key}
-              style={props}
+              style={{
+                opacity,
+                transform: x.interpolate(x => `translateX(${x}px)`),
+              }}
               className="fts-grid fts-animated-grid">
-              {itemsTransition.map(({ item, key, props }) => (
-                <animated.div
-                  className="fts-card"
-                  key={key}
-                  style={props}
-                  onClick={() => removeItem(item)}>
-                  <div className="fts-close-card">&#x2715;</div>
-                  <div>{item}</div>
-                </animated.div>
-              ))}
+              {itemsTransition.map(
+                ({ item, key, props: { scale, opacity } }) => (
+                  <animated.div
+                    className="fts-card"
+                    key={key}
+                    style={{
+                      opacity,
+                      transform: scale.interpolate(s => `scale(${s})`),
+                    }}
+                    onClick={() => removeItem(item)}>
+                    <div className="fts-close-card">&#x2715;</div>
+                    <div>{item}</div>
+                  </animated.div>
+                )
+              )}
             </animated.div>
           )
       )}

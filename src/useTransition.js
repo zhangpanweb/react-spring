@@ -13,13 +13,127 @@ import { requestFrame } from './animated/Globals'
  * const transitions = useTransition({ ... })
  */
 
-let guid = 0
+/*let guid = 0
 let mapKeys = (items, keys) =>
   (typeof keys === 'function' ? items.map(keys) : toArray(keys)).map(String)
 let get = props => {
   let { items, keys = states => states, ...rest } = props
   items = toArray(items !== void 0 ? items : null)
   return { items, keys: mapKeys(items, keys), ...rest }
+}*/
+
+let guid = 0
+let mapKeys = (items, keys) =>
+  (typeof keys === 'function' ? items.map(keys) : toArray(keys)).map(String)
+let get = props => {
+  let { items, keys = item => item, ...rest } = props
+  items = toArray(items !== void 0 ? items : null)
+  return { items, keys: mapKeys(items, keys), ...rest }
+}
+
+function calculateDiffInItems({ first, prevProps, ...state }, props) {
+  let {
+    items,
+    keys,
+    initial,
+    from,
+    enter,
+    leave,
+    update,
+    trail = 0,
+    unique,
+    config,
+  } = get(props)
+  let { keys: _keys, items: _items } = get(prevProps)
+  let current = { ...state.current }
+  let deleted = [...state.deleted]
+
+  // Compare next keys with current keys
+  let currentKeys = Object.keys(current)
+  let currentSet = new Set(currentKeys)
+  let nextSet = new Set(keys)
+  let added = keys.filter(item => !currentSet.has(item))
+  let removed = state.transitions
+    .filter(item => !item.destroyed && !nextSet.has(item.originalKey))
+    .map(i => i.originalKey)
+  let updated = keys.filter(item => currentSet.has(item))
+  let delay = 0
+
+  added.forEach(key => {
+    // In unique mode, remove fading out transitions if their key comes in again
+    if (unique && deleted.find(d => d.originalKey === key))
+      deleted = deleted.filter(t => t.originalKey !== key)
+
+    const keyIndex = keys.indexOf(key)
+    const item = items[keyIndex]
+    const state = 'enter'
+    current[key] = {
+      state,
+      originalKey: key,
+      key: unique ? String(key) : guid++,
+      item,
+      trail: (delay = delay + trail),
+      config: callProp(config, item, state),
+      from: callProp(
+        first ? (initial !== void 0 ? initial || {} : from) : from,
+        item
+      ),
+      to: callProp(enter, item),
+    }
+  })
+
+  removed.forEach(key => {
+    const keyIndex = _keys.indexOf(key)
+    const item = _items[keyIndex]
+    const state = 'leave'
+    deleted.unshift({
+      ...current[key],
+      state,
+      destroyed: true,
+      left: _keys[Math.max(0, keyIndex - 1)],
+      right: _keys[Math.min(_keys.length, keyIndex + 1)],
+      trail: (delay = delay + trail),
+      config: callProp(config, item, state),
+      to: callProp(leave, item),
+    })
+    delete current[key]
+  })
+
+  updated.forEach(key => {
+    const keyIndex = keys.indexOf(key)
+    const item = items[keyIndex]
+    const state = 'update'
+    current[key] = {
+      ...current[key],
+      item,
+      state,
+      trail: (delay = delay + trail),
+      config: callProp(config, item, state),
+      to: callProp(update, item),
+    }
+  })
+
+  let out = keys.map(key => current[key])
+
+  // This tries to restore order for deleted items by finding their last known siblings
+  // only using the left sibling to keep order placement consistent for all deleted items
+  deleted.forEach(({ left, right, ...item }) => {
+    let pos
+    // Was it the element on the left, if yes, move there ...
+    if ((pos = out.findIndex(t => t.originalKey === left)) !== -1) pos += 1
+    // And if nothing else helps, move it to the start ¯\_(ツ)_/¯
+    pos = Math.max(0, pos)
+    out = [...out.slice(0, pos), item, ...out.slice(pos)]
+  })
+
+  return {
+    ...state,
+    first: first && added.length === 0,
+    transitions: out,
+    current,
+    deleted,
+    prevProps: props,
+  }
 }
 
 export function useTransition(props) {
@@ -53,81 +167,93 @@ export function useTransition(props) {
     deleted: [],
     current: {},
     transitions: [],
-    prevProps: null,
-    prevState: undefined,
+    prevProps: {},
   })
 
   // Prop changes effect
   useMemo(
     () => {
-      const { transitions, ...rest } = calculateDiffInItems(
-        state.current,
-        props
-      )
+      // Update state
+      state.current = calculateDiffInItems(state.current, props)
 
-      transitions.forEach(
-        ({ state: name, from, to, config, trail, key, item, destroyed }) => {
-          if (!instances.current.has(key))
-            instances.current.set(key, new Ctrl())
+      state.current.transitions.forEach(transition => {
+        const {
+          state: name,
+          from,
+          to,
+          config,
+          trail,
+          key,
+          item,
+          destroyed,
+        } = transition
+        if (!instances.current.has(key)) instances.current.set(key, new Ctrl())
 
-          // update the map object
-          const ctrl = instances.current.get(key)
+        // update the map object
+        const ctrl = instances.current.get(key)
 
-          if (name === 'update' || name !== state.current.active[key]) {
-            state.current.active[key] = name
+        //if (name === 'update' || name !== state.current.active[key]) {
+        //  state.current.active[key] = name
 
-            const newProps = {
-              to,
-              from,
-              config,
-              ref,
-              onRest: onRest && (values => onRest(item, name, values)),
-              onStart: onStart && (() => onStart(item, name)),
-              onFrame: onFrame && (values => onFrame(item, name, values)),
-              delay: trail,
-              reset: reset && name === 'enter',
-              ...extra,
-            }
+        const newProps = {
+          to,
+          from,
+          config,
+          ref,
+          onRest: values => {
+            const transition = state.current.transitions.findIndex(
+              t => t.key === key
+            )
+            if (mounted.current && transition !== -1) {
+              console.log('  onRest', ctrl.id)
 
-            //console.log(ctrl.id, name, item.name, destroyed)
-            ctrl.update(newProps).then(() => {
-              //console.log('  promise.res > ', ctrl.id, name, item.name, destroyed)
-              if (mounted.current) {
-                if (destroyed && onDestroyed) onDestroyed(item)
-                // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
-                if (destroyed) {
-                  delete state.current.active[key]
-                  state.current = {
-                    ...state.current,
-                    flagged: true,
-                    deleted: state.current.deleted.filter(t => t.key !== key),
-                    /*transitions: state.current.transitions.filter(
-                      t => t.key !== key
-                    ),*/
-                  }
-                }
-
-                // Only when everything's come to rest we enforce a complete dom clean-up
-                const currentInstances = Array.from(instances.current)
-                if (
-                  state.current.flagged &&
-                  !currentInstances.some(([, c]) => c.isActive)
-                ) {
-                  requestFrame(() => forceUpdate())
-                  state.current.flagged = false
+              // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
+              if (destroyed) {
+                if (onDestroyed) onDestroyed(item)
+                delete state.current.active[key]
+                state.current = {
+                  ...state.current,
+                  deleted: state.current.deleted.filter(t => t.key !== key),
+                  // This update has caused a remove, but postpone it until all springs have come to rest
+                  deletions: true,
                 }
               }
-            })
-          }
+
+              if (onRest) onRest(item, name, values)
+
+              // Only when everything's come to rest we enforce a complete dom clean-up
+              const curInstances = Array.from(instances.current)
+              const deletions = state.current.deletions
+              if (deletions && !curInstances.some(([, c]) => c.isActive)) {
+                state.current = {
+                  ...calculateDiffInItems(state.current, props),
+                  // This update should be allowed to pass without pause!
+                  ignoreRef: true,
+                  // Remove deletions flag
+                  deletions: false,
+                }
+                requestFrame(forceUpdate)
+              }
+            }
+          },
+          onStart: onStart && (() => onStart(item, name)),
+          onFrame: onFrame && (values => onFrame(item, name, values)),
+          delay: trail,
+          reset: reset && name === 'enter',
+          ...extra,
         }
-      )
+
+        console.log(ctrl.id, name, item)
+        // Update controller
+        // If this is a referenced transition it will be paused,
+        // unless the call to render comes from an forceUpdate (onRest > destroyed)
+        ctrl.update(newProps, !!ref && state.current.ignoreRef !== true)
+        //}
+      })
 
       state.current = {
         ...state.current,
-        transitions,
-        prevProps: props,
-        first: false,
-        ...rest,
+        ignoreRef: false,
       }
     },
     [items, mapKeys(items, keys).join('')]
@@ -135,11 +261,16 @@ export function useTransition(props) {
 
   useImperativeMethods(ref, () => ({
     start: () =>
-      Promise.all(Array.from(instances.current).map(([, c]) => c.start(true))),
-    stop: () =>
-      Array.from(instances.current).forEach(
-        ([, c]) => c.isActive && c.stop(/*{ finished: true }*/)
+      Promise.all(
+        Array.from(instances.current).map(
+          ([, c]) => new Promise(r => c.start(r))
+        )
       ),
+    stop: () =>
+      Array.from(instances.current).forEach(([, c]) => c.isActive && c.stop()),
+    get controllers() {
+      return Array.from(instances.current).map(([, c]) => c)
+    },
   }))
 
   useEffect(() => {
@@ -154,108 +285,4 @@ export function useTransition(props) {
   return state.current.transitions.map(({ item, state, key }) => {
     return { item, key, state, props: instances.current.get(key).getValues() }
   })
-}
-
-function calculateDiffInItems({ first, prevProps, ...state }, props) {
-  const { keys: _keys } = get(prevProps || {})
-  const {
-    keys,
-    items,
-    initial,
-    from,
-    unique,
-    trail = 0,
-    update,
-    enter,
-    leave,
-    config,
-  } = get(props)
-  const currSet = new Set(keys)
-  const prevSet = new Set(_keys)
-  let deleted = [...state.deleted]
-  let current = { ...state.current }
-
-  const removed = state.transitions.filter(
-    ({ destroyed, originalKey }) => !destroyed && !currSet.has(originalKey)
-  )
-
-  const added = keys.filter(key => !prevSet.has(key))
-  const updated = _keys.filter(key => currSet.has(key))
-
-  // if n
-  let delay = (!trail && props.delay) || 0
-
-  // Make sure trailed transitions start at 0
-  if (trail) delay -= trail
-
-  added.forEach(key => {
-    const keyIndex = keys.indexOf(key)
-    const item = items[keyIndex]
-    const state = 'enter'
-
-    if (unique && deleted.find(d => d.originalKey === key))
-      deleted = deleted.filter(t => t.originalKey !== key)
-
-    current[key] = {
-      item,
-      state,
-      trail: (delay = delay + trail),
-      key: unique ? String(key) : guid++,
-      originalKey: key,
-      destroyed: false,
-      config: callProp(config, item, state),
-      to: callProp(enter, item),
-      from: callProp(
-        first ? (initial !== void 0 ? initial || {} : from) : from,
-        item
-      ),
-    }
-  })
-
-  removed.forEach(({ item, originalKey, ...rest }) => {
-    const keyIndex = _keys.indexOf(originalKey)
-    const state = 'leave'
-    deleted.unshift({
-      ...rest,
-      originalKey,
-      item,
-      state,
-      left: _keys[Math.max(0, keyIndex - 1)],
-      destroyed: true,
-      trail: (delay = delay + trail),
-      config: callProp(config, item, state),
-      to: callProp(leave, item),
-    })
-    delete current[item.originalKey]
-  })
-
-  updated.forEach(key => {
-    const keyIndex = keys.indexOf(key)
-    const item = items[keyIndex]
-    const state = 'update'
-    current[key] = {
-      ...current[key],
-      item,
-      state,
-      destroyed: false,
-      trail: (delay = delay + trail),
-      config: callProp(config, item, state),
-      to: callProp(update, item),
-    }
-  })
-
-  let out = keys.map(key => current[key])
-
-  // This tries to restore order for deleted items by finding their last known siblings
-  // only using the left sibling to keep order placement consistent for all deleted items
-  deleted.forEach(({ left, right, ...item }) => {
-    let pos
-    // Was it the element on the left, if yes, move there ...
-    if ((pos = out.findIndex(t => t.originalKey === left)) !== -1) pos += 1
-    // And if nothing else helps, move it to the start ¯\_(ツ)_/¯
-    pos = Math.max(0, pos)
-    out = [...out.slice(0, pos), item, ...out.slice(pos)]
-  })
-
-  return { deleted, updated, current, transitions: out }
 }
