@@ -91,7 +91,7 @@ export default class Controller {
     }
 
     // Only start an animation if the controller bears no reference
-    return !paused && this.start()
+    return !paused && this.hasChanged && this.start()
   }
 
   diff(props) {
@@ -234,8 +234,8 @@ export default class Controller {
     removeController(this)
 
     // Reset collected changes when changes have been made
-    if (result.finished)
-      getValues(this.animations).forEach(a => (a.changes = undefined))
+    //if (result.finished)
+    //  getValues(this.animations).forEach(a => (a.changes = undefined))
 
     // Call onRest if present
     if (this.props.onRest) this.props.onRest(this.merged)

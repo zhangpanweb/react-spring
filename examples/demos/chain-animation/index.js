@@ -10,7 +10,7 @@ import styled from 'styled-components'
 import data from '../list-reordering/data'
 
 export default function App() {
-  const [open, set] = useState(true)
+  const [open, set] = useState(false)
 
   // 1. create spring-refs, which will refer to the springs Controller
   const springRef = useRef()

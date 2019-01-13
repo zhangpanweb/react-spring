@@ -77,7 +77,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
 
   useChain(visible ? [containerRef, itemsRef] : [itemsRef, containerRef], [
     0,
-    0.5,
+    visible ? 0.1 : 0.8,
   ])
 
   return (

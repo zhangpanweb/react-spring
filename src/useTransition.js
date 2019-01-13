@@ -171,6 +171,7 @@ export function useTransition(props) {
   })
 
   // Prop changes effect
+  //console.log("memo", [mapKeys(items, keys).join(''), state.current.ignoreRef])
   useMemo(
     () => {
       // Update state
@@ -205,12 +206,13 @@ export function useTransition(props) {
               t => t.key === key
             )
             if (mounted.current && transition !== -1) {
-              console.log('  onRest', ctrl.id)
+              //console.log('  onRest', ctrl.id)
 
               // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
               if (destroyed) {
+                //console.log('    onDestroyed.1', ctrl.id)
                 if (onDestroyed) onDestroyed(item)
-                delete state.current.active[key]
+                //delete state.current.active[key]
                 state.current = {
                   ...state.current,
                   deleted: state.current.deleted.filter(t => t.key !== key),
@@ -225,6 +227,7 @@ export function useTransition(props) {
               const curInstances = Array.from(instances.current)
               const deletions = state.current.deletions
               if (deletions && !curInstances.some(([, c]) => c.isActive)) {
+                //console.log('    onDestroyed.2', ctrl.id)
                 state.current = {
                   ...calculateDiffInItems(state.current, props),
                   // This update should be allowed to pass without pause!
@@ -243,7 +246,7 @@ export function useTransition(props) {
           ...extra,
         }
 
-        console.log(ctrl.id, name, item)
+        //console.log(ctrl.id, name, item)
         // Update controller
         // If this is a referenced transition it will be paused,
         // unless the call to render comes from an forceUpdate (onRest > destroyed)
@@ -256,7 +259,7 @@ export function useTransition(props) {
         ignoreRef: false,
       }
     },
-    [items, mapKeys(items, keys).join('')]
+    [mapKeys(items, keys).join(''), state.current.ignoreRef]
   )
 
   useImperativeMethods(ref, () => ({

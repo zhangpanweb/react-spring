@@ -20,7 +20,6 @@ export default function App() {
   const [, fU] = useState()
   // It should not matter if the component is re-rendered, it shouldn't drop out of sync
   useEffect(() => void setInterval(fU, 100), [])
-  console.log('r')
 
   const [index, set] = useState(0)
   const onClick = useCallback(
