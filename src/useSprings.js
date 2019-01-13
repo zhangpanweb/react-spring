@@ -36,7 +36,7 @@ export const useSprings = (length, props) => {
   const api = useImperativeMethods(ref, () => ({
     start: () =>
       Promise.all(ctrl.current.map(c => new Promise(r => c.start(r)))),
-    stop: () => ctrl.current.forEach(c => c.stop()),
+    stop: args => ctrl.current.forEach(c => c.stop(args)),
     get controllers() {
       return ctrl.current
     },
@@ -45,10 +45,8 @@ export const useSprings = (length, props) => {
   // This function updates the controllers
   const updateCtrl = useMemo(
     () => updateProps =>
-      Promise.all(
-        ctrl.current.map((c, i) =>
-          c.update(isFn ? callProp(updateProps, i, c) : updateProps[i], !!ref)
-        )
+      ctrl.current.map((c, i) =>
+        c.update(isFn ? callProp(updateProps, i, c) : updateProps[i], !!ref)
       ),
     [length]
   )

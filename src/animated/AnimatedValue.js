@@ -45,26 +45,11 @@ export default class AnimatedValue extends AnimatedWithChildren {
     this.lastPosition = value
     this.lastVelocity = undefined
     this.lastTime = undefined
-    this.controller = undefined
   }
 
   flush() {
     if (this.animatedStyles.size === 0) this.updateStyles()
     this.animatedStyles.forEach(animatedStyle => animatedStyle.update())
-  }
-
-  prepare(controller) {
-    // Values stay loyal to their original controller, this is also a way to
-    // detect trailing values originating from a foreign controller
-    if (this.controller === undefined) this.controller = controller
-    if (this.controller === controller) {
-      this.startPosition = this.value
-      this.lastPosition = this.value
-      this.lastVelocity = controller.isActive ? this.lastVelocity : undefined
-      this.lastTime = controller.isActive ? this.lastTime : undefined
-      this.done = false
-      this.animatedStyles.clear()
-    }
   }
 
   setValue = (value, flush = true) => {

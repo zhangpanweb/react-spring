@@ -9,8 +9,10 @@ import {
 import styled from 'styled-components'
 import data from '../list-reordering/data'
 
+//const data = [data_[0], data_[1]]
+
 export default function App() {
-  const [open, set] = useState(false)
+  const [open, set] = useState(true)
 
   // 1. create spring-refs, which will refer to the springs Controller
   const springRef = useRef()

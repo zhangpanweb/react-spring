@@ -11,6 +11,7 @@ import {
   callProp,
   is,
 } from '../shared/helpers'
+import { isSunday } from 'date-fns'
 
 let G = 0
 export default class Controller {
@@ -90,8 +91,10 @@ export default class Controller {
       this.diff(props)
     }
 
+    //console.log("    update", props)
+
     // Only start an animation if the controller bears no reference
-    return !paused && this.hasChanged && this.start()
+    return !paused && /*this.hasChanged &&*/ this.start()
   }
 
   diff(props) {
@@ -142,66 +145,78 @@ export default class Controller {
         if (target) toValue = target.animations[name].parent
 
         // Detect changes, animated values will be checked in the raf-loop
-        if (!is.und(toConfig.decay) || !is.equ(entry.changes, value)) {
-          this.hasChanged = true
-          let parent, interpolation
-          if (isNumber || isString)
-            parent = interpolation =
-              entry.parent || new AnimatedValue(fromValue)
-          else if (isArray)
-            parent = interpolation =
-              entry.parent || new AnimatedArray(fromValue)
-          else {
-            const prev =
-              entry.interpolation &&
-              entry.interpolation.calc(entry.parent.value)
-            if (entry.parent) {
-              parent = entry.parent
-              parent.setValue(0, false)
-            } else parent = new AnimatedValue(0)
-            const range = {
-              output: [prev !== void 0 ? prev : fromValue, value],
-            }
-            if (entry.interpolation) {
-              interpolation = entry.interpolation
-              entry.interpolation.updateConfig(range)
-            } else interpolation = parent.interpolate(range)
-          }
 
+        let curValue = entry.interpolation && entry.interpolation.getValue()
+        let newValue = value
+        let first = is.und(curValue)
+
+        // Convert regular values into animated values, ALWAYS re-use if possible
+        let parent, interpolation
+        if (isNumber || isString)
+          parent = interpolation = entry.parent || new AnimatedValue(fromValue)
+        else if (isArray)
+          parent = interpolation = entry.parent || new AnimatedArray(fromValue)
+        else {
+          const prev = (newValue =
+            entry.interpolation && entry.interpolation.calc(entry.parent.value))
+          if (entry.parent) {
+            parent = entry.parent
+            parent.setValue(0, false)
+          } else parent = new AnimatedValue(0)
+          const range = {
+            output: [prev !== void 0 ? prev : fromValue, value],
+          }
+          if (entry.interpolation) {
+            interpolation = entry.interpolation
+            entry.interpolation.updateConfig(range)
+          } else interpolation = parent.interpolate(range)
+          newValue = interpolation.calc(1)
+        }
+
+        const animatedValues = toArray(parent.getPayload())
+        const active = !first && animatedValues.some(value => !value.done)
+
+        // If the previous value does not match the current value we flag changes
+        //console.log('  ', name, curValue, newValue, is.equ(curValue, newValue))
+        if (first || !is.equ(curValue, newValue)) {
+          this.hasChanged = true
+          // Reset animated values
+          animatedValues.forEach(value => {
+            value.startPosition = value.value
+            value.lastPosition = value.value
+            value.lastVelocity = active ? value.lastVelocity : undefined
+            value.lastTime = active ? value.lastTime : undefined
+            value.done = false
+            value.animatedStyles.clear()
+          })
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
+        } else animatedValues.forEach(value => (value.done = true))
 
-          // Reset animated values
-          const animatedValues = toArray(parent.getPayload())
-          animatedValues.forEach(value => value.prepare(this))
-
-          return {
-            ...acc,
-            [name]: {
-              ...entry,
-              name,
-              parent,
-              interpolation,
-              animatedValues,
-              changes: value,
-              fromValues: toArray(parent.getValue()),
-              toValues: toArray(target ? toValue.getPayload() : toValue),
-              immediate: callProp(immediate, name),
-              delay: this.isActive
-                ? 0
-                : withDefault(toConfig.delay, delay || 0),
-              initialVelocity: withDefault(toConfig.velocity, 0),
-              clamp: withDefault(toConfig.clamp, false),
-              precision: withDefault(toConfig.precision, 0.01),
-              tension: withDefault(toConfig.tension, 170),
-              friction: withDefault(toConfig.friction, 26),
-              mass: withDefault(toConfig.mass, 1),
-              duration: toConfig.duration,
-              easing: withDefault(toConfig.easing, t => t),
-              decay: toConfig.decay,
-            },
-          }
-        } else return acc
+        return {
+          ...acc,
+          [name]: {
+            ...entry,
+            name,
+            parent,
+            interpolation,
+            animatedValues,
+            //changes: currentValue,
+            fromValues: toArray(parent.getValue()),
+            toValues: toArray(target ? toValue.getPayload() : toValue),
+            immediate: callProp(immediate, name),
+            delay: active ? 0 : withDefault(toConfig.delay, delay || 0),
+            initialVelocity: withDefault(toConfig.velocity, 0),
+            clamp: withDefault(toConfig.clamp, false),
+            precision: withDefault(toConfig.precision, 0.01),
+            tension: withDefault(toConfig.tension, 170),
+            friction: withDefault(toConfig.friction, 26),
+            mass: withDefault(toConfig.mass, 1),
+            duration: toConfig.duration,
+            easing: withDefault(toConfig.easing, t => t),
+            decay: toConfig.decay,
+          },
+        }
       },
       this.animations
     )
@@ -234,8 +249,10 @@ export default class Controller {
     removeController(this)
 
     // Reset collected changes when changes have been made
-    //if (result.finished)
+    //if (result.reset)
     //  getValues(this.animations).forEach(a => (a.changes = undefined))
+
+    //console.log(this.id, result)
 
     // Call onRest if present
     if (this.props.onRest) this.props.onRest(this.merged)

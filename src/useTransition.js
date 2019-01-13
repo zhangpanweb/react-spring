@@ -177,82 +177,70 @@ export function useTransition(props) {
       // Update state
       state.current = calculateDiffInItems(state.current, props)
 
-      state.current.transitions.forEach(transition => {
-        const {
-          state: name,
-          from,
-          to,
-          config,
-          trail,
-          key,
-          item,
-          destroyed,
-        } = transition
-        if (!instances.current.has(key)) instances.current.set(key, new Ctrl())
+      state.current.transitions.forEach(
+        ({ state: name, from, to, config, trail, key, item, destroyed }) => {
+          if (!instances.current.has(key))
+            instances.current.set(key, new Ctrl())
 
-        // update the map object
-        const ctrl = instances.current.get(key)
+          // update the map object
+          const ctrl = instances.current.get(key)
+          const newProps = {
+            to,
+            from,
+            config,
+            ref,
+            onRest: values => {
+              const transition = state.current.transitions.findIndex(
+                t => t.key === key
+              )
+              if (mounted.current && transition !== -1) {
+                //console.log('  onRest', ctrl.id)
 
-        //if (name === 'update' || name !== state.current.active[key]) {
-        //  state.current.active[key] = name
+                // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
+                if (destroyed) {
+                  //console.log('    onDestroyed.1', ctrl.id)
+                  if (onDestroyed) onDestroyed(item)
+                  //delete state.current.active[key]
+                  state.current = {
+                    ...state.current,
+                    deleted: state.current.deleted.filter(t => t.key !== key),
+                    // This update has caused a remove, but postpone it until all springs have come to rest
+                    deletions: true,
+                  }
+                }
 
-        const newProps = {
-          to,
-          from,
-          config,
-          ref,
-          onRest: values => {
-            const transition = state.current.transitions.findIndex(
-              t => t.key === key
-            )
-            if (mounted.current && transition !== -1) {
-              //console.log('  onRest', ctrl.id)
+                if (onRest) onRest(item, name, values)
 
-              // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
-              if (destroyed) {
-                //console.log('    onDestroyed.1', ctrl.id)
-                if (onDestroyed) onDestroyed(item)
-                //delete state.current.active[key]
-                state.current = {
-                  ...state.current,
-                  deleted: state.current.deleted.filter(t => t.key !== key),
-                  // This update has caused a remove, but postpone it until all springs have come to rest
-                  deletions: true,
+                // Only when everything's come to rest we enforce a complete dom clean-up
+                const curInstances = Array.from(instances.current)
+                const deletions = state.current.deletions
+                if (deletions && !curInstances.some(([, c]) => c.isActive)) {
+                  //console.log('    onDestroyed.2', ctrl.id)
+                  state.current = {
+                    ...calculateDiffInItems(state.current, props),
+                    // This update should be allowed to pass without pause!
+                    ignoreRef: true,
+                    // Remove deletions flag
+                    deletions: false,
+                  }
+                  requestFrame(forceUpdate)
                 }
               }
+            },
+            onStart: onStart && (() => onStart(item, name)),
+            onFrame: onFrame && (values => onFrame(item, name, values)),
+            delay: trail,
+            reset: reset && name === 'enter',
+            ...extra,
+          }
 
-              if (onRest) onRest(item, name, values)
-
-              // Only when everything's come to rest we enforce a complete dom clean-up
-              const curInstances = Array.from(instances.current)
-              const deletions = state.current.deletions
-              if (deletions && !curInstances.some(([, c]) => c.isActive)) {
-                //console.log('    onDestroyed.2', ctrl.id)
-                state.current = {
-                  ...calculateDiffInItems(state.current, props),
-                  // This update should be allowed to pass without pause!
-                  ignoreRef: true,
-                  // Remove deletions flag
-                  deletions: false,
-                }
-                requestFrame(forceUpdate)
-              }
-            }
-          },
-          onStart: onStart && (() => onStart(item, name)),
-          onFrame: onFrame && (values => onFrame(item, name, values)),
-          delay: trail,
-          reset: reset && name === 'enter',
-          ...extra,
+          //console.log(ctrl.id, name, newProps)
+          // Update controller
+          // If this is a referenced transition it will be paused,
+          // unless the call to render comes from an forceUpdate (onRest > destroyed)
+          ctrl.update(newProps, !!ref && state.current.ignoreRef !== true)
         }
-
-        //console.log(ctrl.id, name, item)
-        // Update controller
-        // If this is a referenced transition it will be paused,
-        // unless the call to render comes from an forceUpdate (onRest > destroyed)
-        ctrl.update(newProps, !!ref && state.current.ignoreRef !== true)
-        //}
-      })
+      )
 
       state.current = {
         ...state.current,
@@ -269,8 +257,10 @@ export function useTransition(props) {
           ([, c]) => new Promise(r => c.start(r))
         )
       ),
-    stop: () =>
-      Array.from(instances.current).forEach(([, c]) => c.isActive && c.stop()),
+    stop: args =>
+      Array.from(instances.current).forEach(
+        ([, c]) => c.isActive && c.stop(args)
+      ),
     get controllers() {
       return Array.from(instances.current).map(([, c]) => c)
     },

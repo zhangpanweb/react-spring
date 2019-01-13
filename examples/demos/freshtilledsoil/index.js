@@ -72,6 +72,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     items: visible ? items : [],
     trail: 400 / items.length,
     unique: true,
+    reset: true,
     ref: itemsRef,
   })
 
