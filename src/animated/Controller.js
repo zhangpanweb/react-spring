@@ -11,7 +11,6 @@ import {
   callProp,
   is,
 } from '../shared/helpers'
-import { isSunday } from 'date-fns'
 
 let G = 0
 export default class Controller {
@@ -145,10 +144,8 @@ export default class Controller {
         if (target) toValue = target.animations[name].parent
 
         // Detect changes, animated values will be checked in the raf-loop
-
         let curValue = entry.interpolation && entry.interpolation.getValue()
         let newValue = value
-        let first = is.und(curValue)
 
         // Convert regular values into animated values, ALWAYS re-use if possible
         let parent, interpolation
@@ -173,25 +170,34 @@ export default class Controller {
           newValue = interpolation.calc(1)
         }
 
+        const toValues = toArray(target ? toValue.getPayload() : toValue)
         const animatedValues = toArray(parent.getPayload())
-        const active = !first && animatedValues.some(value => !value.done)
 
-        // If the previous value does not match the current value we flag changes
-        //console.log('  ', name, curValue, newValue, is.equ(curValue, newValue))
-        if (first || !is.equ(curValue, newValue)) {
+        // Change detection flags
+        const isFirst = is.und(curValue)
+        const isActive = !isFirst && animatedValues.some(value => !value.done)
+        const hasNotReachedGoal = !is.equ(curValue, newValue)
+        const hasDifferentGoal = !(isActive && is.equ(newValue, entry.goal))
+        const isTrailing = entry.delay
+
+        //console.log('  detect', name, value, newValue, entry.goal, isFirst || hasNotReachedGoal && hasDifferentGoal)
+
+        if (isFirst || (hasNotReachedGoal && hasDifferentGoal)) {
+          //console.log("    change!")
           this.hasChanged = true
           // Reset animated values
           animatedValues.forEach(value => {
             value.startPosition = value.value
             value.lastPosition = value.value
-            value.lastVelocity = active ? value.lastVelocity : undefined
-            value.lastTime = active ? value.lastTime : undefined
+            value.lastVelocity = isActive ? value.lastVelocity : undefined
+            value.lastTime = isActive ? value.lastTime : undefined
             value.done = false
             value.animatedStyles.clear()
           })
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
-        } else animatedValues.forEach(value => (value.done = true))
+        } else
+          isTrailing && animatedValues.forEach(value => (value.done = true))
 
         return {
           ...acc,
@@ -201,11 +207,11 @@ export default class Controller {
             parent,
             interpolation,
             animatedValues,
-            //changes: currentValue,
+            toValues,
+            goal: newValue,
             fromValues: toArray(parent.getValue()),
-            toValues: toArray(target ? toValue.getPayload() : toValue),
             immediate: callProp(immediate, name),
-            delay: active ? 0 : withDefault(toConfig.delay, delay || 0),
+            delay: isActive ? 0 : withDefault(toConfig.delay, delay || 0),
             initialVelocity: withDefault(toConfig.velocity, 0),
             clamp: withDefault(toConfig.clamp, false),
             precision: withDefault(toConfig.precision, 0.01),
@@ -233,33 +239,31 @@ export default class Controller {
   }
 
   start(onEnd) {
-    // Set start-flags and add the controller to the frameloop
-    this.startTime = now()
-    // Stop all occuring animations (without resetting change-detection)
-    if (this.isActive) this.stop()
-    this.isActive = true
-    if (onEnd) this.onEnd = onEnd
-    if (this.props.onStart) this.props.onStart()
-    addController(this)
+    if (this.hasChanged) {
+      // Stop all occuring animations (without resetting change-detection)
+      this.stop()
+      this.hasChanged = false
+      this.isActive = true
+      // Set start-flags and add the controller to the frameloop
+      this.startTime = now()
+      if (onEnd) this.onEnd = onEnd
+      if (this.props.onStart) this.props.onStart()
+      addController(this)
+    } else onEnd && onEnd()
   }
 
   stop(result = { finished: false }) {
     this.isActive = false
-    this.hasChanged = false
     removeController(this)
 
-    // Reset collected changes when changes have been made
-    //if (result.reset)
-    //  getValues(this.animations).forEach(a => (a.changes = undefined))
+    if (result.finished) {
+      // Call onRest if present
+      if (this.props.onRest) this.props.onRest(this.merged, result)
 
-    //console.log(this.id, result)
-
-    // Call onRest if present
-    if (this.props.onRest) this.props.onRest(this.merged)
-
-    if (this.onEnd) {
-      this.onEnd(result)
-      this.onEnd = undefined
+      if (this.onEnd) {
+        this.onEnd(result)
+        this.onEnd = undefined
+      }
     }
   }
 

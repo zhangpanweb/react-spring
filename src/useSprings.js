@@ -9,11 +9,17 @@ import { callProp, is } from './shared/helpers'
 
 export const useSprings = (length, props) => {
   const mounted = useRef(false)
+  const ctrl = useRef()
   const isFn = is.fun(props)
 
   // The controller maintains the animation values, starts and tops animations
   const [controllers, ref] = useMemo(
     () => {
+      // Remove old controllers
+      if (ctrl.current) {
+        ctrl.current.map(c => c.destroy())
+        ctrl.current = undefined
+      }
       let ref
       return [
         new Array(length).fill().map((_, i) => {
@@ -29,7 +35,6 @@ export const useSprings = (length, props) => {
     [length]
   )
 
-  const ctrl = useRef()
   ctrl.current = controllers
 
   // The hooks reference api gets defined here ...

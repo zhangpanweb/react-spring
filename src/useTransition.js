@@ -59,7 +59,7 @@ function calculateDiffInItems({ first, prevProps, ...state }, props) {
   let updated = keys.filter(item => currentSet.has(item))
   let delay = 0
 
-  added.forEach(key => {
+  added.forEach((key, index) => {
     // In unique mode, remove fading out transitions if their key comes in again
     if (unique && deleted.find(d => d.originalKey === key))
       deleted = deleted.filter(t => t.originalKey !== key)
@@ -72,7 +72,7 @@ function calculateDiffInItems({ first, prevProps, ...state }, props) {
       originalKey: key,
       key: unique ? String(key) : guid++,
       item,
-      trail: (delay = delay + trail),
+      trail: (delay = delay + (index === 0 ? 0 : trail)),
       config: callProp(config, item, state),
       from: callProp(
         first ? (initial !== void 0 ? initial || {} : from) : from,
@@ -189,14 +189,32 @@ export function useTransition(props) {
             from,
             config,
             ref,
-            onRest: values => {
-              const transition = state.current.transitions.findIndex(
-                t => t.key === key
-              )
+            onRest: (values, result) => {
+              const isKey = t => t.key === key
+              const transition = state.current.transitions.findIndex(isKey)
               if (mounted.current && transition !== -1) {
-                //console.log('  onRest', ctrl.id)
+                //console.log('  onRest', ctrl.id, r, props.enter)
 
-                // Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
+                if (destroyed && result.finished) {
+                  const isNotKey = t => t.key !== key
+                  state.current = {
+                    ...state.current,
+                    deleted: state.current.deleted.filter(isNotKey),
+                    transitions: state.current.transitions.filter(isNotKey),
+                    deletions: true,
+                  }
+                  instances.current.delete(key)
+                  if (onDestroyed) onDestroyed(item)
+                }
+
+                const curInstances = Array.from(instances.current)
+                const deletions = state.current.deletions
+                if (deletions && !curInstances.some(([, c]) => c.isActive)) {
+                  state.current.deletions = false
+                  requestFrame(forceUpdate)
+                }
+
+                /*// Clean up internal state when items unmount, this doesn't need to trigger a forceUpdate
                 if (destroyed) {
                   //console.log('    onDestroyed.1', ctrl.id)
                   if (onDestroyed) onDestroyed(item)
@@ -219,12 +237,16 @@ export function useTransition(props) {
                   state.current = {
                     ...calculateDiffInItems(state.current, props),
                     // This update should be allowed to pass without pause!
-                    ignoreRef: true,
+                    ignoreRef: key,
                     // Remove deletions flag
                     deletions: false,
                   }
-                  requestFrame(forceUpdate)
-                }
+                  requestFrame(() => {
+                    console.log(instances.current)
+                    instances.current.delete(key)
+                    forceUpdate()
+                  })
+                }*/
               }
             },
             onStart: onStart && (() => onStart(item, name)),
@@ -234,11 +256,11 @@ export function useTransition(props) {
             ...extra,
           }
 
-          //console.log(ctrl.id, name, newProps)
+          //console.log(ctrl.id, name, newProps.to)
           // Update controller
           // If this is a referenced transition it will be paused,
           // unless the call to render comes from an forceUpdate (onRest > destroyed)
-          ctrl.update(newProps, !!ref && state.current.ignoreRef !== true)
+          ctrl.update(newProps, !!ref && state.current.ignoreRef !== key)
         }
       )
 

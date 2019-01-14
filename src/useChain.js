@@ -7,26 +7,33 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
 
   useEffect(() => {
     const local = ++guid.current
-    console.log('useChain', guid.current, local)
+    //console.log('useChain', refs, timeSteps, guid.current, local)
+    frames.current.forEach(clearTimeout)
 
-    //refs.forEach(({ current }) => current && current.stop())
+    //refs.forEach(({ current }) => current && current.stop({ force: true }))
     if (timeSteps) {
-      frames.current.forEach(clearTimeout)
       frames.current = []
       let index = 0
       refs.forEach((ref, i) => {
         //const hasChanges = ref.current.controllers.some(c => c.hasChanged)
         //if (hasChanges)
         frames.current.push(
-          setTimeout(() => ref.current.start(), timeFrame * timeSteps[i])
+          setTimeout(() => {
+            if (local === guid.current) {
+              //console.log("  starting timeout", ref.current.controllers.length)
+              ref.current.start()
+            }
+          }, timeFrame * timeSteps[i])
         )
       })
     } else {
       refs.reduce(
         (q, { current }, i) =>
           (q = q.then(() => {
-            console.log('  ', current.controllers.length)
-            return local === guid.current && current && current.start()
+            if (local === guid.current) {
+              //console.log("  starting async", current.controllers.length)
+              return current.start()
+            }
           })),
         Promise.resolve()
       )

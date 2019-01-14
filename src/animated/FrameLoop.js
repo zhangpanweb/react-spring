@@ -120,6 +120,7 @@ const frameLoop = () => {
           animation.done = true
         } else isDone = false
 
+        // console.log(position)
         animation.updateValue(position)
         animation.lastPosition = position
       }

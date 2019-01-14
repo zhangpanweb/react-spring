@@ -6,7 +6,7 @@ import './styles.css'
 
 export default function Container() {
   const [, forceUpdate] = useState()
-  const [items, setItems] = useState([1, 2, 3, 4, 5, 6, 7, 8])
+  const [items, setItems] = useState(new Array(10).fill().map((_, i) => i))
   const [visible, setVisible] = useState(false)
   const shuffleItems = useMemo(() => () => setItems(shuffle), items.length)
   const addItem = useMemo(
@@ -57,9 +57,9 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
   const containerTransition = useTransition({
     config: config.stiff,
     items: visible,
-    from: { opacity: 0, x: -1000 },
+    from: { opacity: 0, x: -100 },
     enter: { opacity: 1, x: 0 },
-    leave: { opacity: 0, x: 1000 },
+    leave: { opacity: 0, x: 100 },
     ref: containerRef,
   })
 
@@ -72,14 +72,11 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     items: visible ? items : [],
     trail: 400 / items.length,
     unique: true,
-    reset: true,
     ref: itemsRef,
   })
 
-  useChain(visible ? [containerRef, itemsRef] : [itemsRef, containerRef], [
-    0,
-    visible ? 0.1 : 0.8,
-  ])
+  const chain = [containerRef, itemsRef]
+  useChain(visible ? chain : chain.reverse(), visible && [0, 0.1])
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -89,6 +86,8 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
             <animated.div
               key={key}
               style={{
+                position: 'absolute',
+                width: '100%',
                 opacity,
                 transform: x.interpolate(x => `translateX(${x}px)`),
               }}
