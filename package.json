@@ -126,7 +126,8 @@
   "jest": {
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "jest"
+      "jest",
+      "legacy"
     ],
     "testRegex": "test.js$",
     "coverageDirectory": "./coverage/",

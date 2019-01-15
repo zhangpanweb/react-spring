@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { is } from './shared/helpers'
 import { config as constants } from './shared/constants'
 
 export function useChain(refs, timeSteps, timeFrame = 1000) {
+  const queue = useRef(Promise.resolve())
   const frames = useRef([])
   const guid = useRef(0)
 
@@ -48,18 +49,22 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
           }, timeFrame * timeSteps[rI])
         )
       )
-    } else
+    }
+    //queue.current = queue.current.then(() =>
+    else
       refs.reduce(
         (q, { current }, rI) =>
           (q = q.then(() => {
             current.controllers.forEach((c, cI) => {
               //c.update({ config: configs[rI][cI] })
             })
+            console.log(current.name)
             if (guid.current === local) {
               return current.start()
             }
           })),
         Promise.resolve()
       )
+    // )
   }, refs)
 }

@@ -174,20 +174,20 @@ export default class Controller {
 
         // Change detection flags
         const isFirst = is.und(curValue)
-        const isActive = !isFirst && animatedValues.some(value => !value.done)
-        const hasNotReachedGoal = !is.equ(curValue, newValue)
-        const hasDifferentGoal = !(isActive && is.equ(newValue, entry.goal))
-        const hasDifferentConfig = !is.equ(toConfig, entry.config)
+        const isActive = !isFirst && !this.idle //animatedValues.some(value => !value.done)
         const isTrailing = entry.delay
 
-        //console.log('  detect', name, value, newValue, entry.goal, isFirst || hasNotReachedGoal && hasDifferentGoal)
+        /*console.log('  detect', name, curValue, newValue)
+        console.log('    reached goal', !is.equ(curValue, newValue))
+        console.log('    different goal', !(isActive && is.equ(newValue, entry.goal)))*/
 
         if (
           isFirst ||
-          (hasNotReachedGoal && hasDifferentGoal) ||
-          hasDifferentConfig
+          !is.equ(curValue, newValue) || //Has not reached goal yet
+          !(isActive && is.equ(newValue, entry.goal)) || // has a different goal
+          !is.equ(toConfig, entry.config) // has a different config
         ) {
-          //console.log("    change!")
+          //console.log("    change!", name, value)
           this.hasChanged = true
           // Reset animated values
           animatedValues.forEach(value => {
@@ -200,7 +200,11 @@ export default class Controller {
           })
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
-        } //else isTrailing && animatedValues.forEach(value => (value.done = true))
+        } else {
+          console.log(' x fell through', name)
+        }
+
+        //else isTrailing && animatedValues.forEach(value => (value.done = true))
 
         return {
           ...acc,
@@ -212,9 +216,10 @@ export default class Controller {
             animatedValues,
             toValues,
             goal: newValue,
+            config: toConfig,
             fromValues: toArray(parent.getValue()),
             immediate: callProp(immediate, name),
-            delay: withDefault(toConfig.delay, delay || 0),
+            delay: isActive ? 0 : withDefault(toConfig.delay, delay || 0),
             initialVelocity: withDefault(toConfig.velocity, 0),
             clamp: withDefault(toConfig.clamp, false),
             precision: withDefault(toConfig.precision, 0.01),
@@ -224,7 +229,6 @@ export default class Controller {
             duration: toConfig.duration,
             easing: withDefault(toConfig.easing, t => t),
             decay: toConfig.decay,
-            config: toConfig,
           },
         }
       },

@@ -58,9 +58,6 @@ export const useSprings = (length, props) => {
     [length]
   )
 
-  // Update controller if props aren't functional
-  useEffect(() => void (mounted.current && !isFn && updateCtrl(props)))
-
   // Update mounted flag and destroy controller on unmount
   useEffect(
     () => (
@@ -68,6 +65,9 @@ export const useSprings = (length, props) => {
     ),
     []
   )
+
+  // Update controller if props aren't functional
+  useEffect(() => void (mounted.current && !isFn && updateCtrl(props)))
 
   // Return animated props, or, anim-props + the update-setter above
   const propValues = ctrl.current.map(c => c.getValues())

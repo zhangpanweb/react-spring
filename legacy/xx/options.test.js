@@ -53,7 +53,6 @@ test('delay', () => {
   jest.advanceTimersByTime(90)
   mockRaf.step({ count: 10 })
 
-
   // Advance timers by 10ms, this should trigger the animation
   jest.advanceTimersByTime(10)
   mockRaf.step({ count: 10 })

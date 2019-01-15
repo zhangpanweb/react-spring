@@ -18,9 +18,9 @@ export default function App() {
   const springRef = useRef()
   const { size, opacity, ...rest } = useSpring({
     from: { size: '20%', background: 'hotpink' },
-    size: open ? '100%' : '20%',
-    background: open ? 'white' : 'hotpink',
-    opacity: open ? 0 : 1,
+    size: true ? '100%' : '20%',
+    background: true ? 'white' : 'hotpink',
+    opacity: true ? 0 : 1,
     config: { ...config.stiff, precision: 0.01 },
     ref: springRef,
   })
@@ -33,10 +33,11 @@ export default function App() {
     from: { opacity: 0, transform: 'scale(0)' },
     enter: { opacity: 1, transform: 'scale(1)' },
     leave: { opacity: 0, transform: 'scale(0)' },
-    trail: 500 / data.length,
+    trail: 1000 / data.length,
     config: { ...config.stiff, precision: 0.01, cancelDelay: true },
     unique: true,
-    reset: true,
+    onRest: () => console.log('rest'),
+    //reset: true,
     ref: transRef,
   })
 

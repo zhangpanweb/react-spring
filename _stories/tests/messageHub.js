@@ -5,7 +5,7 @@ import { X } from 'react-feather'
 import {
   animated,
   useTransition,
-  config as defaultConfig
+  config as defaultConfig,
 } from '../../src/targets/web/hooks'
 import { testStories } from '../index'
 
@@ -99,9 +99,9 @@ export const Life = styled(animated.div)`
 
 let id = 0
 
-function MessageHub ({
+function MessageHub({
   config = { tension: 125, friction: 20, precision: 0.1 },
-  timeout = 100000
+  timeout = 100000,
 }) {
   const [cancelMap] = useState(() => new WeakMap())
   const [refMap] = useState(() => new WeakMap())
@@ -133,7 +133,7 @@ function MessageHub ({
     // functional array configs don't seem to work, the code below would normally
     // define configs for the functional leave state above (3 calls, first uses duration)
     config: (item, state) =>
-      state === 'leave' ? [{ duration: timeout }, config, config] : config
+      state === 'leave' ? [{ duration: timeout }, config, config] : config,
   })
 
   useEffect(
@@ -153,8 +153,7 @@ function MessageHub ({
             <Life style={{ right: life }} />
             <p>{item.msg}</p>
             <Button
-              onClick={() => cancelMap.has(item) && cancelMap.get(item)()}
-            >
+              onClick={() => cancelMap.has(item) && cancelMap.get(item)()}>
               <X size={18} />
             </Button>
           </Content>
