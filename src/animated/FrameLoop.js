@@ -7,8 +7,9 @@ const controllers = new Set()
 const frameLoop = () => {
   let time = now()
   for (let controller of controllers) {
-    let isDone = true
     let noChange = true
+
+    controller.idle = true
 
     for (
       let configIdx = 0;
@@ -16,7 +17,6 @@ const frameLoop = () => {
       configIdx++
     ) {
       let config = controller.configs[configIdx]
-
       let endOfAnimation, lastTime, velocity
       for (let valIdx = 0; valIdx < config.animatedValues.length; valIdx++) {
         let animation = config.animatedValues[valIdx]
@@ -42,7 +42,7 @@ const frameLoop = () => {
 
         // Doing delay here instead of setTimeout is one async worry less
         if (config.delay && time - controller.startTime < config.delay) {
-          isDone = false
+          controller.idle = false
           continue
         }
 
@@ -118,9 +118,9 @@ const frameLoop = () => {
           // Ensure that we end up with a round value
           if (animation.value !== to) position = to
           animation.done = true
-        } else isDone = false
+        } else controller.idle = false
 
-        // console.log(position)
+        //console.log(position)
         animation.updateValue(position)
         animation.lastPosition = position
       }
@@ -133,9 +133,9 @@ const frameLoop = () => {
     if (controller.props.onFrame) controller.props.onFrame(controller.values)
 
     // Either call onEnd or next frame
-    if (isDone) {
+    if (controller.idle) {
       controllers.delete(controller)
-      controller.stop({ finished: true, noChange })
+      controller.stop(true, noChange)
     }
   }
 

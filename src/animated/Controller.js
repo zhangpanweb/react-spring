@@ -16,8 +16,7 @@ let G = 0
 export default class Controller {
   constructor(props) {
     this.id = 'ctrl' + G++
-    this.dependents = new Set()
-    this.isActive = false
+    this.idle = true
     this.hasChanged = false
     this.props = {}
     this.merged = {}
@@ -25,12 +24,12 @@ export default class Controller {
     this.interpolations = {}
     this.values = {}
     this.configs = []
+    this.listeners = []
     this.startTime = undefined
     this.lastTime = undefined
     this.guid = 0
     this.local = 0
-    this.last = true
-    this.update(props, true)
+    this.update(props)
   }
 
   runAsync(props) {
@@ -46,7 +45,9 @@ export default class Controller {
         if (!last) fresh.onRest = undefined
         if (is.arr(fresh.config)) fresh.config = fresh.config[index]
         queue = queue.then(
-          () => this.local === this.guid && this.update(interpolateTo(fresh))
+          () =>
+            this.local === this.guid &&
+            new Promise(r => this.update(interpolateTo(fresh).start(r)))
         )
       }
     } else if (is.fun(props.to)) {
@@ -63,11 +64,13 @@ export default class Controller {
                   if (!last) fresh.onRest = undefined
                   if (is.arr(fresh.config)) fresh.config = fresh.config[index]
                   index++
-                  return this.update(fresh).then(() => last && res())
+                  return new Promise(r => this.update(fresh).start(r)).then(
+                    () => last && res()
+                  )
                 }
               },
               // Cancel
-              () => this.stop({ finished: true })
+              () => this.stop(true)
             )
           )
       )
@@ -76,7 +79,7 @@ export default class Controller {
     queue.then(resolve)
   }
 
-  update(props = {}, paused) {
+  update(props = {}) {
     let isArr = is.arr(props.to)
     let isFun = is.fun(props.to)
 
@@ -89,11 +92,7 @@ export default class Controller {
     } else {
       this.diff(props)
     }
-
-    //console.log("    update", props)
-
-    // Only start an animation if the controller bears no reference
-    return !paused && /*this.hasChanged &&*/ this.start()
+    return this
   }
 
   diff(props) {
@@ -178,11 +177,16 @@ export default class Controller {
         const isActive = !isFirst && animatedValues.some(value => !value.done)
         const hasNotReachedGoal = !is.equ(curValue, newValue)
         const hasDifferentGoal = !(isActive && is.equ(newValue, entry.goal))
+        const hasDifferentConfig = !is.equ(toConfig, entry.config)
         const isTrailing = entry.delay
 
         //console.log('  detect', name, value, newValue, entry.goal, isFirst || hasNotReachedGoal && hasDifferentGoal)
 
-        if (isFirst || (hasNotReachedGoal && hasDifferentGoal)) {
+        if (
+          isFirst ||
+          (hasNotReachedGoal && hasDifferentGoal) ||
+          hasDifferentConfig
+        ) {
           //console.log("    change!")
           this.hasChanged = true
           // Reset animated values
@@ -196,8 +200,7 @@ export default class Controller {
           })
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
-        } else
-          isTrailing && animatedValues.forEach(value => (value.done = true))
+        } //else isTrailing && animatedValues.forEach(value => (value.done = true))
 
         return {
           ...acc,
@@ -211,7 +214,7 @@ export default class Controller {
             goal: newValue,
             fromValues: toArray(parent.getValue()),
             immediate: callProp(immediate, name),
-            delay: isActive ? 0 : withDefault(toConfig.delay, delay || 0),
+            delay: withDefault(toConfig.delay, delay || 0),
             initialVelocity: withDefault(toConfig.velocity, 0),
             clamp: withDefault(toConfig.clamp, false),
             precision: withDefault(toConfig.precision, 0.01),
@@ -221,6 +224,7 @@ export default class Controller {
             duration: toConfig.duration,
             easing: withDefault(toConfig.easing, t => t),
             decay: toConfig.decay,
+            config: toConfig,
           },
         }
       },
@@ -239,36 +243,27 @@ export default class Controller {
   }
 
   start(onEnd) {
-    if (this.hasChanged) {
-      // Stop all occuring animations (without resetting change-detection)
-      this.stop()
-      this.hasChanged = false
-      this.isActive = true
-      // Set start-flags and add the controller to the frameloop
-      this.startTime = now()
-      if (onEnd) this.onEnd = onEnd
-      if (this.props.onStart) this.props.onStart()
-      addController(this)
-    } else onEnd && onEnd()
+    if (is.fun(onEnd)) this.listeners.push(onEnd)
+    this.startTime = now()
+    if (this.props.onStart) this.props.onStart()
+    addController(this)
+    return this
   }
 
-  stop(result = { finished: false }) {
-    this.isActive = false
-    removeController(this)
-
-    if (result.finished) {
-      // Call onRest if present
-      if (this.props.onRest) this.props.onRest(this.merged, result)
-
-      if (this.onEnd) {
-        this.onEnd(result)
-        this.onEnd = undefined
-      }
+  stop(finished, noChange) {
+    this.idle = true
+    this.listeners.forEach(onEnd => onEnd())
+    this.listeners = []
+    if (finished) {
+      removeController(this)
+      getValues(this.animations).forEach(a => (a.done = true))
+      if (this.props.onRest) this.props.onRest(this.merged)
     }
+    return this
   }
 
   destroy() {
-    removeController(this)
+    this.stop()
     this.props = {}
     this.merged = {}
     this.animations = {}

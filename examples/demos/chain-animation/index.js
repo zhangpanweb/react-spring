@@ -21,7 +21,7 @@ export default function App() {
     size: open ? '100%' : '20%',
     background: open ? 'white' : 'hotpink',
     opacity: open ? 0 : 1,
-    config: config.stiff,
+    config: { ...config.stiff, precision: 0.01 },
     ref: springRef,
   })
 
@@ -34,10 +34,13 @@ export default function App() {
     enter: { opacity: 1, transform: 'scale(1)' },
     leave: { opacity: 0, transform: 'scale(0)' },
     trail: 500 / data.length,
-    config: config.stiff,
+    config: { ...config.stiff, precision: 0.01, cancelDelay: true },
     unique: true,
+    reset: true,
     ref: transRef,
   })
+
+  //console.log(open ? "container > items" : "items < container")
 
   const chain = [springRef, transRef]
   useChain(open ? chain : chain.reverse())
