@@ -15,6 +15,12 @@ export const is = {
   equ(a, b) {
     if (typeof a !== typeof b) return false
     if (is.str(a) || is.num(a)) return a === b
+    if (
+      is.obj(a) &&
+      is.obj(b) &&
+      Object.keys(a).length + Object.keys(b).length === 0
+    )
+      return true
     let i
     for (i in a) if (!(i in b)) return false
     for (i in b) if (a[i] !== b[i]) return false

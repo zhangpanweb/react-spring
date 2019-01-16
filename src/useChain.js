@@ -1,18 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { is } from './shared/helpers'
 import { config as constants } from './shared/constants'
 
 export function useChain(refs, timeSteps, timeFrame = 1000) {
-  const queue = useRef(Promise.resolve())
-  const frames = useRef([])
   const guid = useRef(0)
-
+  const queue = useRef(Promise.resolve())
   useEffect(() => {
-    //refs = refs.filter(ref => ref.current)
-
     const local = ++guid.current
 
-    frames.current.forEach(clearTimeout)
     //refs.forEach(({ current }) => current && current.stop())
 
     const configs = refs.map(({ current }) =>
@@ -28,43 +23,35 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
               duration: is.und(config.duration)
                 ? undefined
                 : config.duration * 10,
-              mass: (config.mass || 1) * 15,
-              friction: (config.friction || constants.default.friction) * 15,
-              tension: (config.tension || constants.default.tension) / 15,
+              friction: (config.friction || constants.default.friction) * 30,
+              tension: (config.tension || constants.default.tension) / 30,
             },
           })
       })
     )*/
-    // Maybe try slowing stuff down instead of stopping outright
 
     if (timeSteps) {
       frames.current = []
       refs.forEach(({ current }, rI) =>
         frames.current.push(
           setTimeout(() => {
-            current.controllers.forEach((c, cI) =>
+            /*current.controllers.forEach((c, cI) =>
               c.update({ config: configs[rI][cI] })
-            )
+            )*/
             current.start()
           }, timeFrame * timeSteps[rI])
         )
       )
-    }
-    //queue.current = queue.current.then(() =>
-    else
+    } else
       refs.reduce(
         (q, { current }, rI) =>
           (q = q.then(() => {
-            current.controllers.forEach((c, cI) => {
-              //c.update({ config: configs[rI][cI] })
-            })
-            console.log(current.name)
-            if (guid.current === local) {
-              return current.start()
-            }
+            /*current.controllers.forEach((c, cI) =>
+              c.update({ config: configs[rI][cI] })
+            )*/
+            return guid.current === local && current.start()
           })),
         Promise.resolve()
       )
-    // )
   }, refs)
 }

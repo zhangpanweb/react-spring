@@ -120,7 +120,8 @@ const frameLoop = () => {
           animation.done = true
         } else controller.idle = false
 
-        //console.log(position)
+        //if (config.name === "transform" || config.name === "opacity") console.log(position)
+        //console.log("  ", config.name, position)
         animation.updateValue(position)
         animation.lastPosition = position
       }

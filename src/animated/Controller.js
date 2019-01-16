@@ -1,7 +1,13 @@
 import Animated from './Animated'
 import AnimatedValue from './AnimatedValue'
 import AnimatedArray from './AnimatedArray'
-import { now, colorNames, requestFrame as raf } from './Globals'
+import Interpolation from './Interpolation'
+import {
+  interpolation as interp,
+  now,
+  colorNames,
+  requestFrame as raf,
+} from './Globals'
 import { addController, removeController } from './FrameLoop'
 import {
   interpolateTo,
@@ -11,6 +17,10 @@ import {
   callProp,
   is,
 } from '../shared/helpers'
+
+let o1 = {}
+let o2 = {}
+console.log(is.equ(o1, o2))
 
 let G = 0
 export default class Controller {
@@ -136,58 +146,63 @@ export default class Controller {
           !/\d/.test(value) &&
           !colorNames[value]
         const isArray = is.arr(value)
+        const isInterpolation = !isNumber && !isArray && !isString
 
         let fromValue = !is.und(from[name]) ? from[name] : value
         let toValue = isNumber || isArray ? value : isString ? value : 1
         let toConfig = callProp(config, name)
         if (target) toValue = target.animations[name].parent
 
-        // Detect changes, animated values will be checked in the raf-loop
-        let curValue = entry.interpolation && entry.interpolation.getValue()
+        // this is all wrong, change detection has to start here! or else interpolated values will always move between
+        // 0-1 every time the animation is updated, which makes no sense at all!
+
+        let parent = entry.parent,
+          interpolation = entry.interpolation,
+          toValues = toArray(target ? toValue.getPayload() : toValue),
+          animatedValues
+
         let newValue = value
-
-        // Convert regular values into animated values, ALWAYS re-use if possible
-        let parent, interpolation
-        if (isNumber || isString)
-          parent = interpolation = entry.parent || new AnimatedValue(fromValue)
-        else if (isArray)
-          parent = interpolation = entry.parent || new AnimatedArray(fromValue)
-        else {
-          const prev = (newValue =
-            entry.interpolation && entry.interpolation.calc(entry.parent.value))
-          if (entry.parent) {
-            parent = entry.parent
-            parent.setValue(0, false)
-          } else parent = new AnimatedValue(0)
-          const range = {
-            output: [prev !== void 0 ? prev : fromValue, value],
-          }
-          if (entry.interpolation) {
-            interpolation = entry.interpolation
-            entry.interpolation.updateConfig(range)
-          } else interpolation = parent.interpolate(range)
-          newValue = interpolation.calc(1)
-        }
-
-        const toValues = toArray(target ? toValue.getPayload() : toValue)
-        const animatedValues = toArray(parent.getPayload())
+        if (isInterpolation)
+          newValue = interp({ range: [0, 1], output: [value, value] })(1)
+        let currentValue = interpolation && interpolation.getValue()
 
         // Change detection flags
-        const isFirst = is.und(curValue)
-        const isActive = !isFirst && !this.idle //animatedValues.some(value => !value.done)
-        const isTrailing = entry.delay
+        const isFirst = is.und(parent)
+        const isActive = !isFirst && !this.idle
+        const currentValueDiffersFromGoal = !is.equ(newValue, currentValue)
+        const hasNewGoal = !is.equ(newValue, entry.previous)
+        const hasNewConfig = !is.equ(toConfig, entry.config)
 
-        /*console.log('  detect', name, curValue, newValue)
-        console.log('    reached goal', !is.equ(curValue, newValue))
-        console.log('    different goal', !(isActive && is.equ(newValue, entry.goal)))*/
+        // console.log('  > diff', name, currentValue, '>', newValue, 'prev:', entry.previous)
+        // Change animation props when props indicate a new goal (new value differs from previous one)
+        // and current values differ from it. Config changes trigger a new update as well (though probably shouldn't?)
+        if ((hasNewGoal && currentValueDiffersFromGoal) || hasNewConfig) {
+          // Convert regular values into animated values, ALWAYS re-use if possible
+          if (isNumber || isString)
+            parent = interpolation =
+              entry.parent || new AnimatedValue(fromValue)
+          else if (isArray)
+            parent = interpolation =
+              entry.parent || new AnimatedArray(fromValue)
+          else if (isInterpolation) {
+            let prev =
+              entry.interpolation &&
+              entry.interpolation.calc(entry.parent.value)
+            prev = prev !== void 0 ? prev : fromValue
+            if (entry.parent) {
+              parent = entry.parent
+              parent.setValue(0, false)
+            } else parent = new AnimatedValue(0)
+            const range = { output: [prev, value] }
+            if (entry.interpolation) {
+              interpolation = entry.interpolation
+              entry.interpolation.updateConfig(range)
+            } else interpolation = parent.interpolate(range)
+          }
 
-        if (
-          isFirst ||
-          !is.equ(curValue, newValue) || //Has not reached goal yet
-          !(isActive && is.equ(newValue, entry.goal)) || // has a different goal
-          !is.equ(toConfig, entry.config) // has a different config
-        ) {
-          //console.log("    change!", name, value)
+          toValues = toArray(target ? toValue.getPayload() : toValue)
+          animatedValues = toArray(parent.getPayload())
+
           this.hasChanged = true
           // Reset animated values
           animatedValues.forEach(value => {
@@ -200,42 +215,60 @@ export default class Controller {
           })
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
+
+          return {
+            ...acc,
+            [name]: {
+              ...entry,
+              name,
+              parent,
+              interpolation,
+              animatedValues,
+              toValues,
+              previous: newValue,
+              config: toConfig,
+              fromValues: toArray(parent.getValue()),
+              immediate: callProp(immediate, name),
+              delay:
+                isActive && toConfig.cancelDelay
+                  ? 0
+                  : withDefault(toConfig.delay, delay || 0),
+              initialVelocity: withDefault(toConfig.velocity, 0),
+              clamp: withDefault(toConfig.clamp, false),
+              precision: withDefault(toConfig.precision, 0.01),
+              tension: withDefault(toConfig.tension, 170),
+              friction: withDefault(toConfig.friction, 26),
+              mass: withDefault(toConfig.mass, 1),
+              duration: toConfig.duration,
+              easing: withDefault(toConfig.easing, t => t),
+              decay: toConfig.decay,
+            },
+          }
         } else {
-          console.log(' x fell through', name)
-        }
+          console.log('    noop')
+          if (!currentValueDiffersFromGoal) {
+            // So ... the current target value (newValue) appears to be different from the previous value,
+            // which normally constitutes an update, but the actual value (currentValue) matches the target!
+            // In order to resolve this without causing an animation update we silently flag the animation as done,
+            // which it technically is. Interpolations also needs a config update with their target set to 1.
+            console.log('    reset silently')
+            if (isInterpolation) {
+              parent.setValue(1, false)
+              interpolation.updateConfig({ output: [newValue, newValue] })
+            }
 
-        //else isTrailing && animatedValues.forEach(value => (value.done = true))
-
-        return {
-          ...acc,
-          [name]: {
-            ...entry,
-            name,
-            parent,
-            interpolation,
-            animatedValues,
-            toValues,
-            goal: newValue,
-            config: toConfig,
-            fromValues: toArray(parent.getValue()),
-            immediate: callProp(immediate, name),
-            delay: isActive ? 0 : withDefault(toConfig.delay, delay || 0),
-            initialVelocity: withDefault(toConfig.velocity, 0),
-            clamp: withDefault(toConfig.clamp, false),
-            precision: withDefault(toConfig.precision, 0.01),
-            tension: withDefault(toConfig.tension, 170),
-            friction: withDefault(toConfig.friction, 26),
-            mass: withDefault(toConfig.mass, 1),
-            duration: toConfig.duration,
-            easing: withDefault(toConfig.easing, t => t),
-            decay: toConfig.decay,
-          },
+            parent.done = true
+            this.hasChanged = true
+            return { ...acc, [name]: { ...acc[name], previous: newValue } }
+          }
+          return acc
         }
       },
       this.animations
     )
 
     if (this.hasChanged) {
+      // Make animations available to frameloop
       this.configs = getValues(this.animations)
       this.values = {}
       this.interpolations = {}
@@ -258,8 +291,11 @@ export default class Controller {
     this.idle = true
     this.listeners.forEach(onEnd => onEnd())
     this.listeners = []
+
+    // Stop probably should just freeze/reset values (done + interpolation & previous)
+    removeController(this)
+
     if (finished) {
-      removeController(this)
       getValues(this.animations).forEach(a => (a.done = true))
       if (this.props.onRest) this.props.onRest(this.merged)
     }

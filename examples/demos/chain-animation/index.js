@@ -9,7 +9,7 @@ import {
 import styled from 'styled-components'
 import data from '../list-reordering/data'
 
-//const data = [data_[0], data_[1]]
+//const data = [data_[0]]
 
 export default function App() {
   const [open, set] = useState(true)
@@ -18,9 +18,8 @@ export default function App() {
   const springRef = useRef()
   const { size, opacity, ...rest } = useSpring({
     from: { size: '20%', background: 'hotpink' },
-    size: true ? '100%' : '20%',
-    background: true ? 'white' : 'hotpink',
-    opacity: true ? 0 : 1,
+    size: open ? '100%' : '20%',
+    background: open ? 'white' : 'hotpink',
     config: { ...config.stiff, precision: 0.01 },
     ref: springRef,
   })
@@ -33,25 +32,36 @@ export default function App() {
     from: { opacity: 0, transform: 'scale(0)' },
     enter: { opacity: 1, transform: 'scale(1)' },
     leave: { opacity: 0, transform: 'scale(0)' },
-    trail: 1000 / data.length,
+    trail: 400 / data.length,
     config: { ...config.stiff, precision: 0.01, cancelDelay: true },
     unique: true,
-    onRest: () => console.log('rest'),
+    //onRest: () => console.log('rest'),
     //reset: true,
     ref: transRef,
   })
 
-  //console.log(open ? "container > items" : "items < container")
+  //console.log(open ? "container > I T E M S" : "I T E M S > container")
 
   const chain = [springRef, transRef]
   useChain(open ? chain : chain.reverse())
+
+  useEffect(() => {
+    requestAnimationFrame(async () => {
+      await new Promise(r => setTimeout(r, 2000))
+      console.log('_____________________________')
+      /*set(false)
+      await new Promise(r => setTimeout(r, 500))
+      set(true)
+      await new Promise(r => setTimeout(r, 500))
+      set(false)*/
+    })
+  }, [])
 
   return (
     <Main>
       <Sidebar
         style={{ ...rest, width: size, height: size }}
         onClick={() => set(open => !open)}>
-        <Content style={{ opacity }}>Click</Content>
         {transitions.map(({ item, key, props }) => (
           <Item key={key} style={{ ...props, background: item.css }} />
         ))}

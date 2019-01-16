@@ -55,7 +55,7 @@ export function useTransition(props) {
   })
 
   useImperativeMethods(props.ref, () => ({
-    name: 'items',
+    name: 'I T E M S',
     start: () =>
       Promise.all(
         Array.from(state.current.instances).map(
@@ -109,13 +109,13 @@ export function useTransition(props) {
           reset: reset && slot === 'enter',
         }
 
-        // console.log(ctrl.id, slot, newProps.to)
+        console.log(ctrl.id, slot, newProps.to)
         // Update controller
         ctrl.update(newProps)
         if (!state.current.paused) ctrl.start()
       })
     },
-    [mapKeys(props.items, props.keys).join('')]
+    [mapKeys(items, keys).join('')]
   )
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import './styles.css'
 export default function Container() {
   const [, forceUpdate] = useState()
   const [items, setItems] = useState(new Array(10).fill().map((_, i) => i))
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
   const shuffleItems = useMemo(() => () => setItems(shuffle), items.length)
   const addItem = useMemo(
     () => () => setItems(items => [...items, Math.max(...items) + 1]),
@@ -61,8 +61,8 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     enter: { opacity: 1, x: 0 },
     leave: { opacity: 0, x: 500 },
     ref: containerRef,
-    //unique: true,
-    //reset: true
+    unique: true,
+    reset: true,
   })
 
   const itemsRef = useRef()
@@ -78,7 +78,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
   })
 
   const chain = [containerRef, itemsRef]
-  useChain(visible ? chain : chain.reverse(), [0, visible ? 0.1 : 0.8])
+  useChain(visible ? chain : chain.reverse()) //, [0, visible ? 0.1 : 0.8])
 
   return (
     <div style={{ padding: '2rem' }}>
