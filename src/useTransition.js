@@ -88,18 +88,24 @@ export function useTransition(props) {
           ref,
           onRest: values => {
             if (state.current.mounted) {
-              //console.log('  onRest', ctrl.id, props.enter)
+              // console.log('  onRest', ctrl.id, props.enter)
               if (transition.destroyed) {
                 // If no ref is given delete destroyed items immediately
                 if (!lazy) cleanUp(state, key)
                 if (onDestroyed) onDestroyed(item)
+                console.log('  onRest:destroy.single', ctrl.id, props.enter)
               }
+
               // A transition comes to rest once all its springs conclude
               const curInstances = Array.from(state.current.instances)
-              if (!curInstances.some(([, c]) => !c.idle)) {
-                if (onRest) onRest()
+              const active = curInstances.some(([, c]) => !c.idle)
+              if (!active) {
                 // If this transition is referenced, only remove items when all springs conclude
-                if (lazy && state.current.deleted.length > 0) cleanUp(state)
+                if (lazy && state.current.deleted.length > 0) {
+                  console.log('  onRest:destroy.all', ctrl.id, props.enter)
+                  cleanUp(state)
+                }
+                if (onRest) onRest(item)
               }
             }
           },
@@ -109,7 +115,7 @@ export function useTransition(props) {
           reset: reset && slot === 'enter',
         }
 
-        console.log(ctrl.id, slot, newProps.to)
+        // console.log(ctrl.id, slot, newProps)
         // Update controller
         ctrl.update(newProps)
         if (!state.current.paused) ctrl.start()
@@ -127,6 +133,7 @@ export function useTransition(props) {
     }
   }, [])
 
+  console.log('useTransition.return', state.current.transitions)
   return state.current.transitions.map(({ item, slot, key }) => {
     return {
       item,
@@ -184,6 +191,8 @@ function diffItems({ first, prevProps, ...state }, props) {
       deleted = deleted.filter(t => t.originalKey !== key)
       //trail = 0
     }
+
+    // TODO: trail shouldn't apply to the first item, no matter if it's enter, leave or update!
 
     const keyIndex = keys.indexOf(key)
     const item = items[keyIndex]

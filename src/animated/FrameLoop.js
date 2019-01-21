@@ -8,8 +8,7 @@ const frameLoop = () => {
   let time = now()
   for (let controller of controllers) {
     let noChange = true
-
-    controller.idle = true
+    let isActive = false
 
     for (
       let configIdx = 0;
@@ -33,16 +32,12 @@ const frameLoop = () => {
           : config.initialVelocity
         if (isAnimated) to = to.getValue()
 
+        //console.log(config.name, position)
+
         // Conclude animation if it's either immediate, or from-values match end-state
-        if (config.immediate || (!isAnimated && !config.decay && from === to)) {
+        if (config.immediate) {
           animation.updateValue(to)
           animation.done = true
-          continue
-        }
-
-        // Doing delay here instead of setTimeout is one async worry less
-        if (config.delay && time - controller.startTime < config.delay) {
-          controller.idle = false
           continue
         }
 
@@ -60,12 +55,9 @@ const frameLoop = () => {
           /** Duration easing */
           position =
             from +
-            config.easing(
-              (time - controller.startTime - config.delay) / config.duration
-            ) *
+            config.easing((time - controller.startTime) / config.duration) *
               (to - from)
-          endOfAnimation =
-            time >= controller.startTime + config.delay + config.duration
+          endOfAnimation = time >= controller.startTime + config.duration
         } else if (config.decay) {
           /** Decay easing */
           position =
@@ -118,10 +110,9 @@ const frameLoop = () => {
           // Ensure that we end up with a round value
           if (animation.value !== to) position = to
           animation.done = true
-        } else controller.idle = false
+        } else isActive = true
 
-        //if (config.name === "transform" || config.name === "opacity") console.log(position)
-        //console.log("  ", config.name, position)
+        //console.log(config.name, position)
         animation.updateValue(position)
         animation.lastPosition = position
       }
@@ -134,7 +125,7 @@ const frameLoop = () => {
     if (controller.props.onFrame) controller.props.onFrame(controller.values)
 
     // Either call onEnd or next frame
-    if (controller.idle) {
+    if (!isActive) {
       controllers.delete(controller)
       controller.stop(true, noChange)
     }
@@ -159,4 +150,8 @@ const removeController = controller => {
   }
 }
 
-export { addController, removeController }
+const isActive = controller => {
+  return active && controllers.has(controller)
+}
+
+export { addController, removeController, isActive }

@@ -18,9 +18,20 @@ import {
   is,
 } from '../shared/helpers'
 
-let o1 = {}
-let o2 = {}
-console.log(is.equ(o1, o2))
+/*
+
+1. any update is queued
+2. values can be queued independently
+3. 
+
+const c = new Ctrl()
+c.update({ ... })
+c.start()
+
+{ from: { a: 0 }, a: 1, b: 2, delay: 3, config: n === 'a' ? { delay: 10 } : { delay: 20 } }
+  { to: { a: 1 }, config: { }, delay: 13 }
+  { to: { b: 2 }, config: { }, delay: 23 }
+*/
 
 let G = 0
 export default class Controller {
@@ -39,11 +50,99 @@ export default class Controller {
     this.lastTime = undefined
     this.guid = 0
     this.local = 0
-    this.update(props)
+
+    this.queue = []
+    if (props) this.update(props)
   }
 
-  runAsync(props) {
-    this.local = ++this.guid
+  /** update(props)
+   *  This function filters input props and creates an array of tasks which are executed in .start()
+   *  Each task is allowed to carry a delay, which means it can execute asnychroneously */
+  update(args) {
+    // Extract delay and the to-prop from props
+    const { delay = 0, to, ...props } = interpolateTo(args)
+    if (is.arr(to) || is.fun(to)) {
+      // If config is either a function or an array queue it up as is
+      this.queue.push({ ...props, delay, to })
+    } else if (to) {
+      // Otherwise go through each key since it could be delayed individually
+      let merge = {}
+      Object.entries(to).forEach(([k, v]) => {
+        // Fetch delay and create an entry, consisting of the to-props, the delay, and basic props
+        const entry = { to: { [k]: v }, delay: callProp(delay, k), ...props }
+        // If it doesn't have a delay, merge it, otherwise add it to the queue
+        if (!entry.delay)
+          merge = { ...merge, ...entry, to: { ...merge.to, ...entry.to } }
+        else this.queue = [...this.queue, entry]
+      })
+      // Append merged props, if present
+      if (Object.keys(merge).length > 0) this.queue = [...this.queue, merge]
+    }
+    // Diff the reduced props immediately (they'll contain the from-prop and some config)
+    this.diff(props)
+    return this
+  }
+
+  /** start(callback)
+   *  This function either executes a queue, if present, or starts the frameloop, which animates */
+  start(onEnd) {
+    // If a queue is present we must excecute it
+    if (this.queue.length) {
+      // The guid helps us tracking frames, a new queue over an old one means an override
+      // We discard async calls in that case
+      const local = (this.local = ++this.guid)
+      const queue = this.queue
+      this.queue = []
+
+      // This callback tracks completion of tasks, only when all tasks are completed can we signal EOL
+      let complete = 0
+      let callback = finished => {
+        if (local === this.guid) {
+          if (++complete === queue.length) {
+            if (onEnd) onEnd()
+            if (finished) {
+              //console.log(this.id, "finished", finished)
+              if (this.props.onRest) this.props.onRest(this.merged)
+            }
+          }
+        } else if (onEnd) onEnd()
+      }
+
+      // Go through each entry and execute it
+      queue.forEach(({ delay, ...props }) => {
+        // Entries can be delayed, ansyc or immediate
+        let async = is.arr(props.to) || is.fun(props.to)
+        if (delay) {
+          setTimeout(() => {
+            if (local === this.guid) {
+              if (async) this.runAsync(props, callback)
+              else this.diff(props).start(callback)
+            }
+          }, delay)
+        } else if (async) this.runAsync(props, callback)
+        else this.diff(props).start(callback)
+      })
+    }
+    // Otherwise we kick of the frameloop
+    else {
+      this.idle = false
+      if (is.fun(onEnd)) this.listeners.push(onEnd)
+      this.startTime = now()
+      if (this.props.onStart) this.props.onStart()
+      addController(this)
+    }
+    return this
+  }
+
+  stop(finished, noChange) {
+    this.idle = true
+    this.listeners.forEach(onEnd => onEnd(finished))
+    this.listeners = []
+    return this
+  }
+
+  runAsync({ delay, ...props }, onEnd) {
+    const local = this.local
     // If "to" is either a function or an array it will be processed async, therefor "to" should be empty right now
     // If the view relies on certain values "from" has to be present
     let queue = Promise.resolve()
@@ -54,64 +153,43 @@ export default class Controller {
         const fresh = { ...props, to: props.to[index] }
         if (!last) fresh.onRest = undefined
         if (is.arr(fresh.config)) fresh.config = fresh.config[index]
-        queue = queue.then(
-          () =>
-            this.local === this.guid &&
-            new Promise(r => this.update(interpolateTo(fresh).start(r)))
-        )
+        queue = queue.then(() => {
+          this.stop()
+          if (local === this.guid)
+            return new Promise(r => this.diff(interpolateTo(fresh)).start(r))
+        })
       }
     } else if (is.fun(props.to)) {
       let index = 0
       let fn = props.to
-      queue = queue.then(
-        () =>
-          new Promise(res =>
-            fn(
-              // Next
-              (p, last = false) => {
-                if (this.local === this.guid) {
-                  const fresh = { ...props, ...interpolateTo(p) }
-                  if (!last) fresh.onRest = undefined
-                  if (is.arr(fresh.config)) fresh.config = fresh.config[index]
-                  index++
-                  return new Promise(r => this.update(fresh).start(r)).then(
-                    () => last && res()
-                  )
-                }
-              },
-              // Cancel
-              () => this.stop(true)
-            )
+      queue = queue
+        .then(() =>
+          fn(
+            // Next
+            p => {
+              const fresh = { ...props, ...interpolateTo(p) }
+              console.log('  fn', fresh)
+              if (is.arr(fresh.config)) fresh.config = fresh.config[index]
+              index++
+              this.stop()
+              if (local === this.guid)
+                return new Promise(r => this.diff(fresh).start(r))
+            },
+            // Cancel
+            () => this.stop(true)
           )
-      )
+        )
+        .then(() => true)
     }
-    // Resolve outer promise when done
-    queue.then(resolve)
-  }
-
-  update(props = {}) {
-    let isArr = is.arr(props.to)
-    let isFun = is.fun(props.to)
-
-    if (isArr || isFun) {
-      // The to-props is either a function or an array, this means it's going to
-      // be processed async, therefore we have to inject an empty to-prop for now
-      // and let the asnyc function update itself
-      this.diff({ ...props, to: {} })
-      raf(() => this.runAsync(props))
-    } else {
-      this.diff(props)
-    }
-    return this
+    queue.then(onEnd)
   }
 
   diff(props) {
-    //console.log('diff', props)
-    let { from = {}, to = {}, ...rest } = interpolateTo(props)
-    this.props = { ...this.props, ...rest }
+    this.props = { ...this.props, ...props }
     let {
+      from = {},
+      to = {},
       config = {},
-      delay,
       reverse,
       attach,
       reset,
@@ -119,13 +197,15 @@ export default class Controller {
       ref,
     } = this.props
 
+    //if (this.id === 'ctrl1') console.log(this.id, this.props)
+
     // Reverse values when requested
     if (reverse) {
       ;[from, to] = [to, from]
     }
 
     // This will collect all props that were ever set, reset merged props when necessary
-    let extra = reset ? {} : this.merged
+    let extra = this.merged // reset ? {} : this.merged
     this.merged = { ...from, ...extra, ...to }
 
     this.hasChanged = false
@@ -136,7 +216,7 @@ export default class Controller {
     this.animations = Object.entries(this.merged).reduce(
       (acc, [name, value], i) => {
         // Issue cached entries, except on reset
-        let entry = (!reset && acc[name]) || {}
+        let entry = acc[name] || {}
 
         // Figure out what the value is supposed to be
         const isNumber = is.num(value)
@@ -168,15 +248,27 @@ export default class Controller {
 
         // Change detection flags
         const isFirst = is.und(parent)
-        const isActive = !isFirst && !this.idle
+        const isActive = !isFirst && entry.animatedValues.some(v => !v.done)
         const currentValueDiffersFromGoal = !is.equ(newValue, currentValue)
         const hasNewGoal = !is.equ(newValue, entry.previous)
         const hasNewConfig = !is.equ(toConfig, entry.config)
 
-        // console.log('  > diff', name, currentValue, '>', newValue, 'prev:', entry.previous)
+        /*console.log(
+          '  > diff',
+          name,
+          currentValue,
+          '>',
+          newValue,
+          'prev:',
+          entry.previous
+        )*/
         // Change animation props when props indicate a new goal (new value differs from previous one)
         // and current values differ from it. Config changes trigger a new update as well (though probably shouldn't?)
-        if ((hasNewGoal && currentValueDiffersFromGoal) || hasNewConfig) {
+        if (
+          reset ||
+          (hasNewGoal && currentValueDiffersFromGoal) ||
+          hasNewConfig
+        ) {
           // Convert regular values into animated values, ALWAYS re-use if possible
           if (isNumber || isString)
             parent = interpolation =
@@ -188,7 +280,7 @@ export default class Controller {
             let prev =
               entry.interpolation &&
               entry.interpolation.calc(entry.parent.value)
-            prev = prev !== void 0 ? prev : fromValue
+            prev = prev !== void 0 && !reset ? prev : fromValue
             if (entry.parent) {
               parent = entry.parent
               parent.setValue(0, false)
@@ -202,6 +294,7 @@ export default class Controller {
 
           toValues = toArray(target ? toValue.getPayload() : toValue)
           animatedValues = toArray(parent.getPayload())
+          if (reset && !isInterpolation) parent.setValue(fromValue, false)
 
           this.hasChanged = true
           // Reset animated values
@@ -213,6 +306,7 @@ export default class Controller {
             value.done = false
             value.animatedStyles.clear()
           })
+
           // Set immediate values
           if (callProp(immediate, name)) parent.setValue(value, false)
 
@@ -229,10 +323,6 @@ export default class Controller {
               config: toConfig,
               fromValues: toArray(parent.getValue()),
               immediate: callProp(immediate, name),
-              delay:
-                isActive && toConfig.cancelDelay
-                  ? 0
-                  : withDefault(toConfig.delay, delay || 0),
               initialVelocity: withDefault(toConfig.velocity, 0),
               clamp: withDefault(toConfig.clamp, false),
               precision: withDefault(toConfig.precision, 0.01),
@@ -245,13 +335,13 @@ export default class Controller {
             },
           }
         } else {
-          console.log('    noop')
+          //console.log('    noop')
           if (!currentValueDiffersFromGoal) {
             // So ... the current target value (newValue) appears to be different from the previous value,
             // which normally constitutes an update, but the actual value (currentValue) matches the target!
             // In order to resolve this without causing an animation update we silently flag the animation as done,
             // which it technically is. Interpolations also needs a config update with their target set to 1.
-            console.log('    reset silently')
+            //console.log('    reset silently')
             if (isInterpolation) {
               parent.setValue(1, false)
               interpolation.updateConfig({ output: [newValue, newValue] })
@@ -276,28 +366,6 @@ export default class Controller {
         this.interpolations[key] = this.animations[key].interpolation
         this.values[key] = this.animations[key].interpolation.getValue()
       }
-    }
-  }
-
-  start(onEnd) {
-    if (is.fun(onEnd)) this.listeners.push(onEnd)
-    this.startTime = now()
-    if (this.props.onStart) this.props.onStart()
-    addController(this)
-    return this
-  }
-
-  stop(finished, noChange) {
-    this.idle = true
-    this.listeners.forEach(onEnd => onEnd())
-    this.listeners = []
-
-    // Stop probably should just freeze/reset values (done + interpolation & previous)
-    removeController(this)
-
-    if (finished) {
-      getValues(this.animations).forEach(a => (a.done = true))
-      if (this.props.onRest) this.props.onRest(this.merged)
     }
     return this
   }

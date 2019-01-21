@@ -75,10 +75,17 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     trail: 400 / items.length,
     ref: itemsRef,
     unique: true,
+    reset: true,
   })
 
+  useEffect(
+    () =>
+      void ((containerRef.current.name = 'container'),
+      (itemsRef.current.name = 'items'))
+  )
+
   const chain = [containerRef, itemsRef]
-  useChain(visible ? chain : chain.reverse()) //, [0, visible ? 0.1 : 0.8])
+  useChain(visible ? chain : chain.reverse(), [0, visible ? 0.1 : 0.6])
 
   return (
     <div style={{ padding: '2rem' }}>

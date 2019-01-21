@@ -9,10 +9,8 @@ import {
 import styled from 'styled-components'
 import data from '../list-reordering/data'
 
-//const data = [data_[0]]
-
 export default function App() {
-  const [open, set] = useState(true)
+  const [open, set] = useState(false)
 
   // 1. create spring-refs, which will refer to the springs Controller
   const springRef = useRef()
@@ -35,7 +33,6 @@ export default function App() {
     trail: 400 / data.length,
     config: { ...config.stiff, precision: 0.01, cancelDelay: true },
     unique: true,
-    //onRest: () => console.log('rest'),
     //reset: true,
     ref: transRef,
   })
@@ -43,19 +40,7 @@ export default function App() {
   //console.log(open ? "container > I T E M S" : "I T E M S > container")
 
   const chain = [springRef, transRef]
-  useChain(open ? chain : chain.reverse())
-
-  useEffect(() => {
-    requestAnimationFrame(async () => {
-      await new Promise(r => setTimeout(r, 2000))
-      console.log('_____________________________')
-      /*set(false)
-      await new Promise(r => setTimeout(r, 500))
-      set(true)
-      await new Promise(r => setTimeout(r, 500))
-      set(false)*/
-    })
-  }, [])
+  useChain(open ? chain : chain.reverse(), [0, open ? 0.1 : 0.5])
 
   return (
     <Main>

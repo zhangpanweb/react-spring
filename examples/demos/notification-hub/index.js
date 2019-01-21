@@ -14,14 +14,13 @@ function MessageHub({
   const [refMap] = useState(() => new WeakMap())
   const [cancelMap] = useState(() => new WeakMap())
   const [items, setItems] = useState([])
+
   const transitions = useTransition({
     items,
     keys: item => item.key,
     from: { opacity: 0, height: 0, life: '100%' },
-    enter: item => next =>
-      requestAnimationFrame(async () =>
-        next({ opacity: 1, height: refMap.get(item).offsetHeight }, true)
-      ),
+    enter: item => async next =>
+      await next({ opacity: 1, height: refMap.get(item).offsetHeight }),
     leave: item => async (next, cancel) => {
       console.log('  one')
       cancelMap.set(item, cancel)
@@ -29,10 +28,13 @@ function MessageHub({
       console.log('  two')
       await next({ opacity: 0 })
       console.log('  three')
-      await next({ height: 0 }, true)
+      await next({ height: 0 })
       console.log('  done!')
     },
-    onRest: item => setItems(state => state.filter(i => i.key !== item.key)),
+    onRest: item => {
+      console.log('onRest', item)
+      setItems(state => state.filter(i => i.key !== item.key))
+    },
     config: (item, state) =>
       state === 'leave' ? [{ duration: timeout }, config, config] : config,
   })
@@ -42,6 +44,8 @@ function MessageHub({
       void children(msg => setItems(state => [...state, { key: id++, msg }])),
     []
   )
+
+  console.log('hub', transitions)
 
   return (
     <Container>
