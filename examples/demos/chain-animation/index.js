@@ -24,9 +24,7 @@ export default function App() {
 
   // 2. create transition-refs
   const transRef = useRef()
-  const transitions = useTransition({
-    items: open ? data : [],
-    keys: item => item.name,
+  const transitions = useTransition(open ? data : [], item => item.name, {
     from: { opacity: 0, transform: 'scale(0)' },
     enter: { opacity: 1, transform: 'scale(1)' },
     leave: { opacity: 0, transform: 'scale(0)' },

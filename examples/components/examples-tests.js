@@ -5,4 +5,10 @@ export default [
     link: '#',
     tags: ['controller'],
   },
+  {
+    name: 'freshtilledsoil',
+    title: 'Freshtilledsoil stresstest',
+    link: 'https://codesandbox.io/embed/j0y0vpz59',
+    tags: ['useChain'],
+  },
 ]

@@ -17,17 +17,16 @@ const pages = [
 ]
 
 export default function App() {
-  const [, fU] = useState()
+  //const [, fU] = useState()
   // It should not matter if the component is re-rendered, it shouldn't drop out of sync
-  useEffect(() => void setInterval(fU, 100), [])
+  //useEffect(() => void setInterval(fU, 100), [])
 
   const [index, set] = useState(0)
   const onClick = useCallback(
     () => set(state => (state === 2 ? 0 : state + 1)),
     []
   )
-  const transitions = useTransition({
-    items: index,
+  const transitions = useTransition(index, p => p, {
     from: { opacity: 0, transform: 'translate3d(100%,0,0)' },
     enter: { opacity: 1, transform: 'translate3d(0%,0,0)' },
     leave: { opacity: 0, transform: 'translate3d(-50%,0,0)' },

@@ -50,9 +50,8 @@ export default function Container() {
 
 const TransitionGrid = ({ visible, items, removeItem }) => {
   const containerRef = useRef()
-  const containerTransition = useTransition({
+  const containerTransition = useTransition(visible, p => p, {
     config: { ...config.stiff, precision: 0.01 },
-    items: visible,
     from: { opacity: 0, x: -500 },
     enter: { opacity: 1, x: 0 },
     leave: { opacity: 0, x: 500 },
@@ -62,12 +61,11 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
   })
 
   const itemsRef = useRef()
-  const itemsTransition = useTransition({
+  const itemsTransition = useTransition(visible ? items : [], p => p, {
     config: { ...config.stiff, precision: 0.01, cancelDelay: false },
     from: { opacity: 0, scale: 0 },
     enter: { opacity: 1, scale: 1 },
     leave: { opacity: 0, scale: 0 },
-    items: visible ? items : [],
     trail: 400 / items.length,
     ref: itemsRef,
     unique: true,

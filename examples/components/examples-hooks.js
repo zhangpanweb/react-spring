@@ -217,9 +217,9 @@ return items.map(i =>
     tags: ['useSprings'],
   },
   {
-    name: 'freshtilledsoil',
-    title: 'Freshtilledsoil stresstest',
-    link: 'https://codesandbox.io/embed/j0y0vpz59',
-    tags: ['useChain'],
+    name: 'masonry-grid',
+    title: 'Masonry grid',
+    link: 'https://codesandbox.io/embed/26mjowzpr',
+    tags: ['useTransition'],
   },
 ]

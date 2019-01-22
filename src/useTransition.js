@@ -23,7 +23,8 @@ let get = props => {
   return { items, keys: mapKeys(items, keys), ...rest }
 }
 
-export function useTransition(props) {
+export function useTransition(input, keyTransform, config) {
+  const props = { items: input, keys: keyTransform, ...config }
   const {
     lazy = true,
     unique = false,
@@ -118,7 +119,7 @@ export function useTransition(props) {
           reset: reset && slot === 'enter',
         }
 
-        //console.log((ref.current ? ref.current.name : ctrl.id) + ctrl.id, slot, newProps.to)
+        //console.log(ctrl.id, slot, newProps.to)
         // Update controller
         ctrl.update(newProps)
         if (!state.current.paused) ctrl.start()

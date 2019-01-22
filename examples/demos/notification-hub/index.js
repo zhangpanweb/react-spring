@@ -15,9 +15,7 @@ function MessageHub({
   const [cancelMap] = useState(() => new WeakMap())
   const [items, setItems] = useState([])
 
-  const transitions = useTransition({
-    items,
-    keys: item => item.key,
+  const transitions = useTransition(items, item => item.key, {
     from: { opacity: 0, height: 0, life: '100%' },
     enter: item => async next =>
       await next({ opacity: 1, height: refMap.get(item).offsetHeight }),

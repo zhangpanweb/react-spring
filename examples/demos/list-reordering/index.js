@@ -9,18 +9,17 @@ export default function App() {
   useEffect(() => void setInterval(() => set(shuffle), 3000), [])
 
   let height = 0
-  const transitions = useTransition({
-    items: rows.map(data => ({
-      ...data,
-      y: (height += data.height) - data.height,
-    })),
-    keys: d => d.name,
-    from: { height: 0, opacity: 0 },
-    leave: { height: 0, opacity: 0 },
-    enter: ({ y, height }) => ({ y, height, opacity: 1 }),
-    update: ({ y, height }) => ({ y, height }),
-    config: { mass: 5, tension: 500, friction: 150 },
-  })
+  const transitions = useTransition(
+    rows.map(data => ({ ...data, y: (height += data.height) - data.height })),
+    d => d.name,
+    {
+      from: { height: 0, opacity: 0 },
+      leave: { height: 0, opacity: 0 },
+      enter: ({ y, height }) => ({ y, height, opacity: 1 }),
+      update: ({ y, height }) => ({ y, height }),
+      config: { mass: 5, tension: 500, friction: 150 },
+    }
+  )
 
   return (
     <div className="list-reorder-scroll">

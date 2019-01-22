@@ -6,8 +6,7 @@ export default function MultiStageTransition() {
   const ref = useRef([])
   const [items, set] = useState([])
 
-  const transitions = useTransition({
-    items,
+  const transitions = useTransition(items, p => p, {
     from: {
       opacity: 0,
       height: 0,

@@ -28,9 +28,7 @@ const slides = [
 export default function App() {
   const [index, set] = useState(0)
 
-  const transitions = useTransition({
-    items: slides[index],
-    keys: item => item.id,
+  const transitions = useTransition(slides[index], item => item.id, {
     from: { opacity: 0 },
     enter: { opacity: 1 },
     leave: { opacity: 0 },
