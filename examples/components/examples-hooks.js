@@ -171,15 +171,15 @@ return transitions.map(({ item, props, key }) => (
   },
   {
     name: 'keyframes-script',
-    title: 'Keyframes scripting',
+    title: 'Spring scripting',
     link: 'https://codesandbox.io/embed/141nrz6v73',
-    tags: ['useKeyframes'],
+    tags: ['useSpring'],
   },
   {
     name: 'keyframes-blackflag',
-    title: 'Keyframes reset script',
+    title: 'Spring reset script',
     link: 'https://codesandbox.io/embed/8ypj5vq6m9',
-    tags: ['useKeyframes'],
+    tags: ['useSpring'],
     code: {
       useKeyframes: `const interp = i => r =>
   \`translate3d(0, \${15 * Math.sin(r + (i * 2 * Math.PI) / 1.6)}px, 0)\`
