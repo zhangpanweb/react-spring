@@ -3,6 +3,8 @@ import AnimatedProps from './AnimatedProps'
 import { handleRef, is } from '../shared/helpers'
 import * as Globals from './Globals'
 
+// todo, turn this into hooks
+
 export default function createAnimatedComponent(Component) {
   class AnimatedComponent extends React.Component {
     static propTypes = {

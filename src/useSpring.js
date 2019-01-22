@@ -2,8 +2,8 @@ import { useSprings } from './useSprings'
 import { is } from './shared/helpers'
 
 /** API
- * const [props, set] = useSpring(() => ({ ... }))
  * const props = useSpring({ ... })
+ * const [props, set] = useSpring(() => ({ ... }))
  */
 
 export const useSpring = props => {

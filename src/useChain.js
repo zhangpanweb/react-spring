@@ -1,28 +1,25 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { is } from './shared/helpers'
-import { config as constants } from './shared/constants'
-import { isActive } from './animated/FrameLoop'
-//import { now } from './Globals'
+
+/** API
+ *  useChain(references, timeSteps, timeFrame)
+ */
 
 export function useChain(refs, timeSteps, timeFrame = 1000) {
+  const previous = useRef()
   useEffect(() => {
-    console.log('-----------------------------------')
-    // TODO, only run queues on ref changes, otherwise start immediately
-    if (timeSteps) {
-      let index = 0
-      refs.forEach(({ current }) => {
+    if (is.equ(refs, previous.current))
+      refs.forEach(({ current }) => current && current.start())
+    else if (timeSteps) {
+      refs.forEach(({ current }, index) => {
         if (current) {
           const ctrls = current.controllers
           if (ctrls.length) {
-            const time = timeFrame * timeSteps[index]
+            const t = timeFrame * timeSteps[index]
             ctrls.forEach(ctrl => {
-              ctrl.queue = ctrl.queue.map(entry => ({
-                ...entry,
-                delay: entry.delay + time,
-              }))
+              ctrl.queue = ctrl.queue.map(e => ({ ...e, delay: e.delay + t }))
               ctrl.start()
             })
-            index++
           }
         }
       })
@@ -31,5 +28,6 @@ export function useChain(refs, timeSteps, timeFrame = 1000) {
         (q, { current }, rI) => (q = q.then(() => current.start())),
         Promise.resolve()
       )
+    previous.current = refs
   })
 }

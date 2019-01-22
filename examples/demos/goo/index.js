@@ -13,6 +13,8 @@ export default function Goo() {
     config: i => (i === 0 ? fast : slow),
   }))
 
+  console.log(trail)
+
   return (
     <div
       ref={ref}

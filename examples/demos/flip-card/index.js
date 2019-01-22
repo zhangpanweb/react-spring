@@ -19,24 +19,16 @@ export default function Card() {
       transform: `perspective(1400px) rotateX(0deg)`,
     },
     //to: { transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)` },
-    /*to: [
+    to: [
       { transform: `perspective(1400px) rotateX(45deg)` },
       { transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)` },
-    ],*/
-    to: async next => {
-      console.log('1')
+    ],
+    /*to: async next => {
       await next({ transform: `perspective(1400px) rotateX(45deg)` })
-      await new Promise(r => setTimeout(r, 1000))
-      console.log('2')
-      await next(
-        {
-          transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)`,
-        },
-        true
-      )
-      console.log('3')
-      return 111
-    },
+      await next({
+        transform: `perspective(1400px) rotateX(${flipped ? 180 : 0}deg)`,
+      })
+    },*/
     onRest: () => console.log('hi'),
   })
   return (

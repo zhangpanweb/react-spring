@@ -8,7 +8,7 @@ import {
   colorNames,
   requestFrame as raf,
 } from './Globals'
-import { addController, removeController } from './FrameLoop'
+import { start } from './FrameLoop'
 import {
   interpolateTo,
   withDefault,
@@ -18,25 +18,10 @@ import {
   is,
 } from '../shared/helpers'
 
-/*
-
-1. any update is queued
-2. values can be queued independently
-3. 
-
-const c = new Ctrl()
-c.update({ ... })
-c.start()
-
-{ from: { a: 0 }, a: 1, b: 2, delay: 3, config: n === 'a' ? { delay: 10 } : { delay: 20 } }
-  { to: { a: 1 }, config: { }, delay: 13 }
-  { to: { b: 2 }, config: { }, delay: 23 }
-*/
-
 let G = 0
 export default class Controller {
   constructor(props) {
-    this.id = 'ctrl' + G++
+    this.id = G++
     this.idle = true
     this.hasChanged = false
     this.props = {}
@@ -59,6 +44,7 @@ export default class Controller {
    *  This function filters input props and creates an array of tasks which are executed in .start()
    *  Each task is allowed to carry a delay, which means it can execute asnychroneously */
   update(args) {
+    if (!args) return this
     // Extract delay and the to-prop from props
     const { delay = 0, to, ...props } = interpolateTo(args)
     if (is.arr(to) || is.fun(to)) {
@@ -78,64 +64,62 @@ export default class Controller {
       // Append merged props, if present
       if (Object.keys(merge).length > 0) this.queue = [...this.queue, merge]
     }
+    // Sort queue, so that async calls go last
+    this.queue = this.queue.sort((a, b) => a.delay - b.delay)
     // Diff the reduced props immediately (they'll contain the from-prop and some config)
     this.diff(props)
     return this
   }
 
-  /** start(callback)
+  /** start(onEnd)
    *  This function either executes a queue, if present, or starts the frameloop, which animates */
   start(onEnd) {
     // If a queue is present we must excecute it
     if (this.queue.length) {
+      //console.log("  start QUEUE", this.id)
       // The guid helps us tracking frames, a new queue over an old one means an override
       // We discard async calls in that case
       const local = (this.local = ++this.guid)
       const queue = this.queue
       this.queue = []
 
-      // This callback tracks completion of tasks, only when all tasks are completed can we signal EOL
-      let complete = 0
-      let callback = finished => {
-        if (local === this.guid) {
-          if (++complete === queue.length) {
-            if (onEnd) onEnd()
-            if (finished) {
-              //console.log(this.id, "finished", finished)
-              if (this.props.onRest) this.props.onRest(this.merged)
-            }
-          }
-        } else if (onEnd) onEnd()
-      }
-
       // Go through each entry and execute it
-      queue.forEach(({ delay, ...props }) => {
+      queue.forEach(({ delay, ...props }, index) => {
+        const cb = finished => {
+          //console.log('  cb', this.id, index, queue.length - 1, finished)
+          if (index === queue.length - 1 && finished) {
+            this.idle = true
+            if (this.props.onRest) this.props.onRest(this.merged)
+          }
+          if (onEnd) onEnd()
+        }
+
         // Entries can be delayed, ansyc or immediate
         let async = is.arr(props.to) || is.fun(props.to)
         if (delay) {
           setTimeout(() => {
             if (local === this.guid) {
-              if (async) this.runAsync(props, callback)
-              else this.diff(props).start(callback)
+              if (async) this.runAsync(props, cb)
+              else this.diff(props).start(cb)
             }
           }, delay)
-        } else if (async) this.runAsync(props, callback)
-        else this.diff(props).start(callback)
+        } else if (async) this.runAsync(props, cb)
+        else this.diff(props).start(cb)
       })
     }
     // Otherwise we kick of the frameloop
     else {
+      //console.log("    start FRAMELOOP", this.id)
       this.idle = false
       if (is.fun(onEnd)) this.listeners.push(onEnd)
       this.startTime = now()
       if (this.props.onStart) this.props.onStart()
-      addController(this)
+      start(this)
     }
     return this
   }
 
   stop(finished, noChange) {
-    this.idle = true
     this.listeners.forEach(onEnd => onEnd(finished))
     this.listeners = []
     return this
@@ -151,35 +135,33 @@ export default class Controller {
         const index = i
         const last = index === props.to.length - 1
         const fresh = { ...props, to: props.to[index] }
-        if (!last) fresh.onRest = undefined
         if (is.arr(fresh.config)) fresh.config = fresh.config[index]
         queue = queue.then(() => {
-          this.stop()
+          //this.stop()
           if (local === this.guid)
             return new Promise(r => this.diff(interpolateTo(fresh)).start(r))
         })
       }
     } else if (is.fun(props.to)) {
       let index = 0
-      let fn = props.to
-      queue = queue
-        .then(() =>
-          fn(
-            // Next
+      let last = undefined
+      queue = queue.then(() =>
+        props
+          .to(
+            // next(props)
             p => {
               const fresh = { ...props, ...interpolateTo(p) }
-              console.log('  fn', fresh)
               if (is.arr(fresh.config)) fresh.config = fresh.config[index]
               index++
-              this.stop()
+              //this.stop()
               if (local === this.guid)
-                return new Promise(r => this.diff(fresh).start(r))
+                return (last = new Promise(r => this.diff(fresh).start(r)))
             },
-            // Cancel
-            () => this.stop(true)
+            // cancel()
+            (finished = true) => this.stop(finished)
           )
-        )
-        .then(() => true)
+          .then(() => last)
+      )
     }
     queue.then(onEnd)
   }

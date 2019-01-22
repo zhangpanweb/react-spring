@@ -45,8 +45,6 @@ function MessageHub({
     []
   )
 
-  console.log('hub', transitions)
-
   return (
     <Container>
       {transitions.map(({ key, item, props: { life, ...style } }) => (

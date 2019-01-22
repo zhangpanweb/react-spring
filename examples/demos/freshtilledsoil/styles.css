@@ -24,14 +24,14 @@
 
 .fts-animated-grid {
   background-color: #6279ff;
-  max-width: 600px;
+  max-width: 400px;
 }
 
 .fts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
   grid-gap: 1rem;
-  max-width: 600px;
+  max-width: 400px;
   padding: 1rem;
   margin: 0;
 }

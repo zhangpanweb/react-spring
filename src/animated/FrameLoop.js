@@ -136,7 +136,7 @@ const frameLoop = () => {
   else active = false
 }
 
-const addController = controller => {
+const start = controller => {
   if (!controllers.has(controller)) {
     controllers.add(controller)
     if (!active) requestFrame(frameLoop)
@@ -144,14 +144,4 @@ const addController = controller => {
   }
 }
 
-const removeController = controller => {
-  if (controllers.has(controller)) {
-    controllers.delete(controller)
-  }
-}
-
-const isActive = controller => {
-  return active && controllers.has(controller)
-}
-
-export { addController, removeController, isActive }
+export { start }

@@ -10,7 +10,8 @@ import { is, toArray, callProp } from './shared/helpers'
 import { requestFrame } from './animated/Globals'
 
 /** API
- * const transitions = useTransition({ ... })
+ * const transitions = useTransition(items, itemKeys, { ... })
+ * const [transitions, update] = useTransition(items, itemKeys, () => ({ ... }))
  */
 
 let guid = 0
@@ -55,7 +56,6 @@ export function useTransition(props) {
   })
 
   useImperativeMethods(props.ref, () => ({
-    name: 'I T E M S',
     start: () =>
       Promise.all(
         Array.from(state.current.instances).map(
@@ -93,7 +93,7 @@ export function useTransition(props) {
                 // If no ref is given delete destroyed items immediately
                 if (!lazy) cleanUp(state, key)
                 if (onDestroyed) onDestroyed(item)
-                console.log('  onRest:destroy.single', ctrl.id, props.enter)
+                //console.log('  onRest:destroy.single', ctrl.id)
               }
 
               // A transition comes to rest once all its springs conclude
@@ -101,12 +101,15 @@ export function useTransition(props) {
               const active = curInstances.some(([, c]) => !c.idle)
               if (!active) {
                 // If this transition is referenced, only remove items when all springs conclude
+                // even the active check fails, b/c the container is still atm ...
                 if (lazy && state.current.deleted.length > 0) {
-                  console.log('  onRest:destroy.all', ctrl.id, props.enter)
+                  //console.log('________________________________')
+                  //console.log('  onRest:destroy.all', (ref.current ? ref.current.name : ctrl.id)+ ctrl.id, curInstances.map(([, c]) => c.idle))
+                  // this is wrong, it pre-emptively clears deleted items
                   cleanUp(state)
                 }
-                if (onRest) onRest(item)
               }
+              if (onRest) onRest(item)
             }
           },
           onStart: onStart && (() => onStart(item, slot)),
@@ -115,7 +118,7 @@ export function useTransition(props) {
           reset: reset && slot === 'enter',
         }
 
-        // console.log(ctrl.id, slot, newProps)
+        //console.log((ref.current ? ref.current.name : ctrl.id) + ctrl.id, slot, newProps.to)
         // Update controller
         ctrl.update(newProps)
         if (!state.current.paused) ctrl.start()
@@ -133,7 +136,6 @@ export function useTransition(props) {
     }
   }, [])
 
-  console.log('useTransition.return', state.current.transitions)
   return state.current.transitions.map(({ item, slot, key }) => {
     return {
       item,

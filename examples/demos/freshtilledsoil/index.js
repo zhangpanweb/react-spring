@@ -5,7 +5,6 @@ import flatten from 'lodash-es/flatten'
 import './styles.css'
 
 export default function Container() {
-  const [, forceUpdate] = useState()
   const [items, setItems] = useState(new Array(10).fill().map((_, i) => i))
   const [visible, setVisible] = useState(false)
   const shuffleItems = useMemo(() => () => setItems(shuffle), items.length)
@@ -24,18 +23,15 @@ export default function Container() {
       <div>
         <div>
           <button className="fts-btn" onClick={toggle}>
-            view exit animation <small>(in theory lol)</small>
+            toggle
           </button>
           {visible && (
             <>
               <button className="fts-btn fts-fade-in" onClick={addItem}>
-                add an item
+                add
               </button>
               <button className="fts-btn fts-fade-in" onClick={shuffleItems}>
-                shuffle items
-              </button>
-              <button className="fts-btn fts-fade-in" onClick={forceUpdate}>
-                force update
+                shuffle
               </button>
             </>
           )}
@@ -78,6 +74,11 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     reset: true,
   })
 
+  useEffect(() => {
+    containerRef.current.name = 'container'
+    itemsRef.current.name = 'items'
+  })
+
   useEffect(
     () =>
       void ((containerRef.current.name = 'container'),
@@ -88,7 +89,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
   useChain(visible ? chain : chain.reverse(), [0, visible ? 0.1 : 0.6])
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div>
       {containerTransition.map(
         ({ item, key, props: { x, opacity } }) =>
           item && (
@@ -96,7 +97,7 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
               key={key}
               style={{
                 position: 'absolute',
-                minHeight: 400,
+                height: 200,
                 width: '100%',
                 opacity,
                 transform: x.interpolate(x => `translateX(${x}px)`),

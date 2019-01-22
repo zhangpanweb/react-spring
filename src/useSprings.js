@@ -3,8 +3,8 @@ import Ctrl from './animated/Controller'
 import { callProp, is } from './shared/helpers'
 
 /** API
- * const [props, set] = useSprings(number, (i, controller) => ({ ... }))
  * const props = useSprings(number, { ... })
+ * const [props, set] = useSprings(number, (i, controller) => ({ ... }))
  */
 
 export const useSprings = (length, props) => {
@@ -27,6 +27,7 @@ export const useSprings = (length, props) => {
           const newProps = isFn ? callProp(props, i, ctrl) : props[i]
           if (i === 0) ref = newProps.ref
           ctrl.update(newProps)
+          if (!ref) ctrl.start()
           return ctrl
         }),
         ref,
@@ -39,7 +40,6 @@ export const useSprings = (length, props) => {
 
   // The hooks reference api gets defined here ...
   const api = useImperativeMethods(ref, () => ({
-    name: 'container',
     start: () =>
       Promise.all(ctrl.current.map(c => new Promise(r => c.start(r)))),
     stop: finished => ctrl.current.forEach(c => c.stop(finished)),

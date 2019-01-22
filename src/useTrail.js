@@ -3,8 +3,8 @@ import { callProp, is } from './shared/helpers'
 import { useSprings } from './useSprings'
 
 /** API
- * const [trails, set] = useTrail(number, () => ({ ... }))
  * const trails = useTrail(number, { ... })
+ * const [trails, set] = useTrail(number, () => ({ ... }))
  */
 
 export const useTrail = (length, props) => {
