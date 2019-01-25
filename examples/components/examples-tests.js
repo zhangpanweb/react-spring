@@ -6,7 +6,7 @@ export default [
     tags: ['controller'],
   },
   {
-    name: 'freshtilledsoil',
+    name: 'tests/freshtilledsoil',
     title: 'Freshtilledsoil stresstest',
     link: 'https://codesandbox.io/embed/j0y0vpz59',
     tags: ['useChain'],

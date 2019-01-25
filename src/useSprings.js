@@ -1,4 +1,4 @@
-import { useMemo, useRef, useImperativeMethods, useEffect } from 'react'
+import { useMemo, useRef, useImperativeHandle, useEffect } from 'react'
 import Ctrl from './animated/Controller'
 import { callProp, is } from './shared/helpers'
 
@@ -39,7 +39,7 @@ export const useSprings = (length, props) => {
   ctrl.current = controllers
 
   // The hooks reference api gets defined here ...
-  const api = useImperativeMethods(ref, () => ({
+  const api = useImperativeHandle(ref, () => ({
     start: () =>
       Promise.all(ctrl.current.map(c => new Promise(r => c.start(r)))),
     stop: finished => ctrl.current.forEach(c => c.stop(finished)),

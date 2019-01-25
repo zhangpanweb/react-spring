@@ -26,7 +26,7 @@ export default function App() {
     () => set(state => (state === 2 ? 0 : state + 1)),
     []
   )
-  const transitions = useTransition(index, p => p, {
+  const transitions = useTransition(index, null, {
     from: { opacity: 0, transform: 'translate3d(100%,0,0)' },
     enter: { opacity: 1, transform: 'translate3d(0%,0,0)' },
     leave: { opacity: 0, transform: 'translate3d(-50%,0,0)' },

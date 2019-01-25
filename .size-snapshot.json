@@ -80,9 +80,9 @@
     }
   },
   "dist/hooks.js": {
-    "bundled": 73514,
-    "minified": 33553,
-    "gzipped": 11194,
+    "bundled": 74315,
+    "minified": 33580,
+    "gzipped": 11207,
     "treeshaked": {
       "rollup": {
         "code": 13089,

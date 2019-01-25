@@ -2,11 +2,11 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import DemoGrid from './components/DemoGrid'
 import Demo from './components/Demo'
-import examples from './components/examples-hooks'
+import examples from './components/examples-tests'
 import './styles.css'
 
-const DEBUG = false
-//const DEBUG = 'scrip'
+//const DEBUG = false
+const DEBUG = 'fres'
 
 ReactDOM.render(
   <DemoGrid fullscreen={!!DEBUG}>

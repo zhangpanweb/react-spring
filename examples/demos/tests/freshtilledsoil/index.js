@@ -16,7 +16,13 @@ export default function Container() {
     () => id => setItems(items => items.filter(item => item !== id)),
     items.length
   )
-  const toggle = useMemo(() => () => setVisible(state => !state), items.length)
+  const toggle = useMemo(
+    () => () =>
+      setVisible(
+        state => console.log('---container SETTING STATE TO', !state) || !state
+      ),
+    items.length
+  )
 
   return (
     <div className="fts-p-4">
@@ -50,18 +56,18 @@ export default function Container() {
 
 const TransitionGrid = ({ visible, items, removeItem }) => {
   const containerRef = useRef()
-  const containerTransition = useTransition(visible, p => p, {
+  const containerTransition = useTransition(visible, null, {
     config: { ...config.stiff, precision: 0.01 },
     from: { opacity: 0, x: -500 },
     enter: { opacity: 1, x: 0 },
     leave: { opacity: 0, x: 500 },
     ref: containerRef,
-    unique: true,
-    reset: true,
+    //unique: true,
+    //reset: true,
   })
 
   const itemsRef = useRef()
-  const itemsTransition = useTransition(visible ? items : [], p => p, {
+  const itemsTransition = useTransition(visible ? items : [], null, {
     config: { ...config.stiff, precision: 0.01, cancelDelay: false },
     from: { opacity: 0, scale: 0 },
     enter: { opacity: 1, scale: 1 },

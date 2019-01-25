@@ -44,6 +44,8 @@ export default class Controller {
    *  This function filters input props and creates an array of tasks which are executed in .start()
    *  Each task is allowed to carry a delay, which means it can execute asnychroneously */
   update(args) {
+    //this._id = n + this.id
+
     if (!args) return this
     // Extract delay and the to-prop from props
     const { delay = 0, to, ...props } = interpolateTo(args)
@@ -76,6 +78,8 @@ export default class Controller {
   start(onEnd) {
     // If a queue is present we must excecute it
     if (this.queue.length) {
+      this.idle = false
+
       //console.log("  start QUEUE", this.id)
       // The guid helps us tracking frames, a new queue over an old one means an override
       // We discard async calls in that case
@@ -83,11 +87,14 @@ export default class Controller {
       const queue = this.queue
       this.queue = []
 
+      //console.log('  ', this._id, "start queue", queue)
+
       // Go through each entry and execute it
       queue.forEach(({ delay, ...props }, index) => {
         const cb = finished => {
           //console.log('  cb', this.id, index, queue.length - 1, finished)
-          if (index === queue.length - 1 && finished) {
+          if (index === queue.length - 1 && local === this.guid && finished) {
+            //console.log('  ', this._id, "finished", local, this.guid)
             this.idle = true
             if (this.props.onRest) this.props.onRest(this.merged)
           }
@@ -109,8 +116,8 @@ export default class Controller {
     }
     // Otherwise we kick of the frameloop
     else {
+      console.log('  ', this._id, 'start')
       //console.log("    start FRAMELOOP", this.id)
-      this.idle = false
       if (is.fun(onEnd)) this.listeners.push(onEnd)
       this.startTime = now()
       if (this.props.onStart) this.props.onStart()

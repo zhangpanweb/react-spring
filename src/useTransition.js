@@ -3,7 +3,7 @@ import {
   useState,
   useEffect,
   useMemo,
-  useImperativeMethods,
+  useImperativeHandle,
 } from 'react'
 import Ctrl from './animated/Controller'
 import { is, toArray, callProp } from './shared/helpers'
@@ -24,7 +24,7 @@ let get = props => {
 }
 
 export function useTransition(input, keyTransform, config) {
-  const props = { items: input, keys: keyTransform, ...config }
+  const props = { items: input, keys: keyTransform || (i => i), ...config }
   const {
     lazy = true,
     unique = false,
@@ -56,7 +56,7 @@ export function useTransition(input, keyTransform, config) {
     forceUpdate,
   })
 
-  useImperativeMethods(props.ref, () => ({
+  useImperativeHandle(props.ref, () => ({
     start: () =>
       Promise.all(
         Array.from(state.current.instances).map(
@@ -105,8 +105,10 @@ export function useTransition(input, keyTransform, config) {
                 // even the active check fails, b/c the container is still atm ...
                 if (lazy && state.current.deleted.length > 0) {
                   //console.log('________________________________')
-                  //console.log('  onRest:destroy.all', (ref.current ? ref.current.name : ctrl.id)+ ctrl.id, curInstances.map(([, c]) => c.idle))
+                  //console.log('  onRest:destroy.all', (ref.current && ref.current.name + ctrl.id), curInstances.map(([, c]) => c.idle))
                   // this is wrong, it pre-emptively clears deleted items
+                  // say through constant clicking it has 2-3 ghosts that are fading out, they could reach onRest while some active
+                  // element is in transit with delay causing a race condition
                   cleanUp(state)
                 }
               }
@@ -119,7 +121,7 @@ export function useTransition(input, keyTransform, config) {
           reset: reset && slot === 'enter',
         }
 
-        //console.log(ctrl.id, slot, newProps.to)
+        //console.log((ref.current && ref.current.name + ctrl.id), slot, newProps.to)
         // Update controller
         ctrl.update(newProps)
         if (!state.current.paused) ctrl.start()
