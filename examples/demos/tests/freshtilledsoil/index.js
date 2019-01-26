@@ -62,8 +62,8 @@ const TransitionGrid = ({ visible, items, removeItem }) => {
     enter: { opacity: 1, x: 0 },
     leave: { opacity: 0, x: 500 },
     ref: containerRef,
-    //unique: true,
-    //reset: true,
+    unique: true,
+    reset: true,
   })
 
   const itemsRef = useRef()

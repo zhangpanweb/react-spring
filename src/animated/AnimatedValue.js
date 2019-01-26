@@ -44,6 +44,7 @@ export default class AnimatedValue extends AnimatedWithChildren {
     this.startPosition = value
     this.lastPosition = value
     this.lastVelocity = undefined
+    this.startTime = undefined
     this.lastTime = undefined
   }
 

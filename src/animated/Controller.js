@@ -24,6 +24,8 @@ export default class Controller {
     this.id = G++
     this.idle = true
     this.hasChanged = false
+    this.guid = 0
+    this.local = 0
     this.props = {}
     this.merged = {}
     this.animations = {}
@@ -31,11 +33,6 @@ export default class Controller {
     this.values = {}
     this.configs = []
     this.listeners = []
-    this.startTime = undefined
-    this.lastTime = undefined
-    this.guid = 0
-    this.local = 0
-
     this.queue = []
     if (props) this.update(props)
   }
@@ -116,10 +113,10 @@ export default class Controller {
     }
     // Otherwise we kick of the frameloop
     else {
-      console.log('  ', this._id, 'start')
+      //console.log('  ', this._id, 'start')
       //console.log("    start FRAMELOOP", this.id)
       if (is.fun(onEnd)) this.listeners.push(onEnd)
-      this.startTime = now()
+      //this.startTime = now()
       if (this.props.onStart) this.props.onStart()
       start(this)
     }
@@ -185,8 +182,6 @@ export default class Controller {
       immediate,
       ref,
     } = this.props
-
-    //if (this.id === 'ctrl1') console.log(this.id, this.props)
 
     // Reverse values when requested
     if (reverse) {
@@ -292,6 +287,7 @@ export default class Controller {
             value.lastPosition = value.value
             value.lastVelocity = isActive ? value.lastVelocity : undefined
             value.lastTime = isActive ? value.lastTime : undefined
+            value.startTime = now()
             value.done = false
             value.animatedStyles.clear()
           })

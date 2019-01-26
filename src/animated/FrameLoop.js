@@ -32,8 +32,6 @@ const frameLoop = () => {
           : config.initialVelocity
         if (isAnimated) to = to.getValue()
 
-        //console.log(config.name, position)
-
         // Conclude animation if it's either immediate, or from-values match end-state
         if (config.immediate) {
           animation.updateValue(to)
@@ -55,9 +53,9 @@ const frameLoop = () => {
           /** Duration easing */
           position =
             from +
-            config.easing((time - controller.startTime) / config.duration) *
+            config.easing((time - animation.startTime) / config.duration) *
               (to - from)
-          endOfAnimation = time >= controller.startTime + config.duration
+          endOfAnimation = time >= animation.startTime + config.duration
         } else if (config.decay) {
           /** Decay easing */
           position =
@@ -143,5 +141,7 @@ const start = controller => {
     active = true
   }
 }
+
+const isActive = controller => active && controllers.has(controller)
 
 export { start }
