@@ -5,7 +5,7 @@ import {
   animated,
   config,
   useChain,
-} from 'react-spring/hooks'
+} from 'react-spring'
 import styled from 'styled-components'
 import data from '../list-reordering/data'
 

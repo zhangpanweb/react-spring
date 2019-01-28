@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react'
-import { useSpring, animated as a, interpolate } from 'react-spring/hooks'
+import { useSpring, animated as a, interpolate } from 'react-spring'
 import lorem from 'lorem-ipsum'
 import './styles.css' // Icon made by Freepik from www.flaticon.com
 

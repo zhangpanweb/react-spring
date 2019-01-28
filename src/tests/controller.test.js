@@ -1,9 +1,6 @@
 import React from 'react'
 import { render, cleanup } from 'react-testing-library'
-
 import createMockRaf from 'mock-raf'
-//import { FadeIn } from '../../stories/tests/opacity'
-
 import { Globals } from '../targets/web'
 import Controller from '../animated/Controller'
 
@@ -26,21 +23,5 @@ test('update', () => {
   mockRaf.step({ count: 100 })
   expect(ctrl.getValues().x.getValue()).toBe(100)
 
-  /*
-  //const { container, getByText, debug } = render(<FadeIn />)
-
-  const box = getByText('test')
-
-  expect(parseFloat(box.style.opacity)).toBe(0)
-
-  mockRaf.step({ count: 10 })
-
-  expect(parseFloat(box.style.opacity)).toBeCloseTo(0.56)
-
-  mockRaf.step({ count: 50 })
-
-  expect(parseFloat(box.style.opacity)).toBeCloseTo(1)
-
-  //cleanup()
-  */
+  cleanup()
 })

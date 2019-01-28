@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useSpring, animated } from 'react-spring/hooks'
+import { useSpring, animated } from 'react-spring'
 import Controller from '../../../../src/animated/Controller'
 
 export default function App() {

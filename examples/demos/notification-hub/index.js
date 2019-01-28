@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import lorem from 'lorem-ipsum'
 import { X } from 'react-feather'
-import { useTransition } from 'react-spring/hooks'
+import { useTransition } from 'react-spring'
 import { Main, Container, Message, Button, Content, Life } from './styles.js'
 
 let id = 0

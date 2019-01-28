@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useSpring, animated } from 'react-spring/hooks'
+import { useSpring, animated } from 'react-spring'
 import './styles.css'
 
 export default function App() {

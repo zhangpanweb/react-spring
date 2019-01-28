@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useTransition, animated } from 'react-spring/hooks'
+import { useTransition, animated } from 'react-spring'
 import shuffle from 'lodash/shuffle'
 import data from './data'
 import './styles.css'

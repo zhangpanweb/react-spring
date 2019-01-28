@@ -110,7 +110,6 @@ const frameLoop = () => {
           animation.done = true
         } else isActive = true
 
-        //console.log(config.name, position)
         animation.updateValue(position)
         animation.lastPosition = position
       }

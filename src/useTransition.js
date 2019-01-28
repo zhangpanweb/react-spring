@@ -26,7 +26,7 @@ let get = props => {
 export function useTransition(input, keyTransform, config) {
   const props = { items: input, keys: keyTransform || (i => i), ...config }
   const {
-    lazy = true,
+    lazy = false,
     unique = false,
     reset = false,
     enter,
@@ -70,65 +70,50 @@ export function useTransition(input, keyTransform, config) {
     },
   }))
 
-  useMemo(
-    () => {
-      // Update state
-      state.current = diffItems(state.current, props)
-      state.current.transitions.forEach(transition => {
-        const { slot, from, to, config, trail, key, item } = transition
-        if (!state.current.instances.has(key))
-          state.current.instances.set(key, new Ctrl())
+  // Update state
+  state.current = diffItems(state.current, props)
+  if (state.current.changed) {
+    // Update state
+    state.current.transitions.forEach(transition => {
+      const { slot, from, to, config, trail, key, item } = transition
+      if (!state.current.instances.has(key))
+        state.current.instances.set(key, new Ctrl())
 
-        // update the map object
-        const ctrl = state.current.instances.get(key)
-        const newProps = {
-          ...extra,
-          to,
-          from,
-          config,
-          ref,
-          onRest: values => {
-            if (state.current.mounted) {
-              // console.log('  onRest', ctrl.id, props.enter)
-              if (transition.destroyed) {
-                // If no ref is given delete destroyed items immediately
-                if (!lazy) cleanUp(state, key)
-                if (onDestroyed) onDestroyed(item)
-                //console.log('  onRest:destroy.single', ctrl.id)
-              }
-
-              // A transition comes to rest once all its springs conclude
-              const curInstances = Array.from(state.current.instances)
-              const active = curInstances.some(([, c]) => !c.idle)
-              if (!active) {
-                // If this transition is referenced, only remove items when all springs conclude
-                // even the active check fails, b/c the container is still atm ...
-                if (lazy && state.current.deleted.length > 0) {
-                  //console.log('________________________________')
-                  //console.log('  onRest:destroy.all', (ref.current && ref.current.name + ctrl.id), curInstances.map(([, c]) => c.idle))
-                  // this is wrong, it pre-emptively clears deleted items
-                  // say through constant clicking it has 2-3 ghosts that are fading out, they could reach onRest while some active
-                  // element is in transit with delay causing a race condition
-                  cleanUp(state)
-                }
-              }
-              if (onRest) onRest(item)
+      // update the map object
+      const ctrl = state.current.instances.get(key)
+      const newProps = {
+        ...extra,
+        to,
+        from,
+        config,
+        ref,
+        onRest: values => {
+          if (state.current.mounted) {
+            if (transition.destroyed) {
+              // If no ref is given delete destroyed items immediately
+              if (!ref && !lazy) cleanUp(state, key)
+              if (onDestroyed) onDestroyed(item)
             }
-          },
-          onStart: onStart && (() => onStart(item, slot)),
-          onFrame: onFrame && (values => onFrame(item, slot, values)),
-          delay: trail,
-          reset: reset && slot === 'enter',
-        }
 
-        //console.log((ref.current && ref.current.name + ctrl.id), slot, newProps.to)
-        // Update controller
-        ctrl.update(newProps)
-        if (!state.current.paused) ctrl.start()
-      })
-    },
-    [mapKeys(items, keys).join('')]
-  )
+            // A transition comes to rest once all its springs conclude
+            const curInstances = Array.from(state.current.instances)
+            const active = curInstances.some(([, c]) => !c.idle)
+            if (!active && (ref || lazy) && state.current.deleted.length > 0)
+              cleanUp(state)
+            if (onRest) onRest(item)
+          }
+        },
+        onStart: onStart && (() => onStart(item, slot)),
+        onFrame: onFrame && (values => onFrame(item, slot, values)),
+        delay: trail,
+        reset: reset && slot === 'enter',
+      }
+
+      // Update controller
+      ctrl.update(newProps)
+      if (!state.current.paused) ctrl.start()
+    })
+  }
 
   useEffect(() => {
     state.current.mounted = mounted.current = true
@@ -192,16 +177,13 @@ function diffItems({ first, prevProps, ...state }, props) {
 
   added.forEach((key, index) => {
     // In unique mode, remove fading out transitions if their key comes in again
-    if (unique && deleted.find(d => d.originalKey === key)) {
+    if (unique && deleted.find(d => d.originalKey === key))
       deleted = deleted.filter(t => t.originalKey !== key)
-      //trail = 0
-    }
 
     // TODO: trail shouldn't apply to the first item, no matter if it's enter, leave or update!
-
     const keyIndex = keys.indexOf(key)
     const item = items[keyIndex]
-    const slot = 'enter'
+    const slot = first && initial !== void 0 ? 'initial' : 'enter'
     current[key] = {
       slot,
       originalKey: key,
@@ -263,6 +245,7 @@ function diffItems({ first, prevProps, ...state }, props) {
 
   return {
     ...state,
+    changed: added.length || removed.length || updated.length,
     first: first && added.length === 0,
     transitions: out,
     current,

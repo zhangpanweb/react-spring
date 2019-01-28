@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { useSpring, animated as a } from 'react-spring/hooks'
+import { useSpring, animated as a } from 'react-spring'
 import './styles.css'
 
 export default function Card() {

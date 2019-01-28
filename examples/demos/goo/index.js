@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useSpring, useTrail, animated as anim } from 'react-spring/hooks'
+import { useSpring, useTrail, animated as anim } from 'react-spring'
 import './styles.css'
 
 const fast = { tension: 1200, friction: 40 }

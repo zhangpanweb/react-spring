@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import clamp from 'lodash-es/clamp'
-import { useSprings, animated } from 'react-spring/hooks'
+import { useSprings, animated } from 'react-spring'
 import { useGesture } from 'react-with-gesture'
 import './styles.css'
 

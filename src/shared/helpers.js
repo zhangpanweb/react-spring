@@ -77,6 +77,7 @@ export function getForwardProps(props) {
     destroyed,
     interpolateTo,
     ref,
+    lazy,
     ...forward
   } = props
   return forward

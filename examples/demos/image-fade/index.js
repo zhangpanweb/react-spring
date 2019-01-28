@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useTransition, animated, config } from 'react-spring/hooks'
+import { useTransition, animated, config } from 'react-spring'
 import './styles.css'
 
 const slides = [

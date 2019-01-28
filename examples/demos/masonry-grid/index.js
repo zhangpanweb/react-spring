@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useTransition, animated as a, config } from 'react-spring/hooks'
+import { useTransition, animated as a, config } from 'react-spring'
 import shuffle from 'lodash/shuffle'
 import { useMeasure, useMedia } from './helpers'
 import data from './data'
@@ -11,23 +11,25 @@ export default function App() {
   const [items, set] = useState(data)
 
   let heights = new Array(columns).fill(0)
-  const transItems = items.map((child, i) => {
-    const column = heights.indexOf(Math.min(...heights))
-    const xy = [
-      (width / columns) * column,
-      (heights[column] += child.height / 2) - child.height / 2,
-    ]
-    return { ...child, xy, width: width / columns, height: child.height / 2 }
-  })
-
-  const transitions = useTransition(width ? transItems : [], item => item.css, {
-    from: ({ xy, width, height }) => ({ xy, width, height: 0, opacity: 0 }),
-    enter: ({ xy, width, height }) => ({ xy, width, height, opacity: 1 }),
-    update: ({ xy, width, height }) => ({ xy, width, height }),
-    leave: { height: 0, opacity: 0 },
-    config: config.stiff,
-    trail: 25,
-  })
+  const transitions = useTransition(
+    items.map((child, i) => {
+      const column = heights.indexOf(Math.min(...heights))
+      const xy = [
+        (width / columns) * column,
+        (heights[column] += child.height / 2) - child.height / 2,
+      ]
+      return { ...child, xy, width: width / columns, height: child.height / 2 }
+    }),
+    item => item.css,
+    {
+      from: ({ xy, width, height }) => ({ xy, width, height, opacity: 0 }),
+      enter: ({ xy, width, height }) => ({ xy, width, height, opacity: 1 }),
+      update: ({ xy, width, height }) => ({ xy, width, height, opacity: 1 }),
+      leave: { height: 0, opacity: 0 },
+      config: config.stiff,
+      trail: 25,
+    }
+  )
 
   useEffect(() => void setInterval(() => set(shuffle), 2000), [])
 

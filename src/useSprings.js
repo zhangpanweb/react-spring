@@ -3,7 +3,7 @@ import Ctrl from './animated/Controller'
 import { callProp, is } from './shared/helpers'
 
 /** API
- * const props = useSprings(number, { ... })
+ * const props = useSprings(number, [{ ... }, { ... }, ...])
  * const [props, set] = useSprings(number, (i, controller) => ({ ... }))
  */
 
@@ -52,7 +52,6 @@ export const useSprings = (length, props) => {
   const updateCtrl = useMemo(
     () => updateProps =>
       ctrl.current.map((c, i) => {
-        //console.log(c.id, updateProps[0])
         c.update(isFn ? callProp(updateProps, i, c) : updateProps[i])
         if (!ref) c.start()
       }),

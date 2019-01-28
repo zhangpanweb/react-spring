@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useSprings, animated, interpolate } from 'react-spring/hooks'
+import { useSprings, animated, interpolate } from 'react-spring'
 import { useGesture } from 'react-with-gesture'
 import './styles.css'
 

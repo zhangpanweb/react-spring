@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useSpring, animated } from 'react-spring/hooks'
+import { useSpring, animated } from 'react-spring'
 import './styles.css'
 
 const calc = (x, y, rect) => [

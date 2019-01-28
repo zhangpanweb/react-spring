@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import clamp from 'lodash-es/clamp'
 import { useGesture } from 'react-with-gesture'
-import { useSpring, animated } from 'react-spring/hooks'
+import { useSpring, animated } from 'react-spring'
 import { add, scale } from 'vec-la'
 import './styles.css'
 

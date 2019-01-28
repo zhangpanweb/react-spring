@@ -65,6 +65,6 @@ export default [
   ...createConfig('targets/native/index', 'native'),
   ...createConfig('targets/universal/index', 'universal'),
   ...createConfig('targets/konva/index', 'konva'),*/
-  ...createConfig('targets/web/hooks', 'hooks'),
+  ...createConfig('targets/web/index', 'web-hooks'),
   //...createConfig('targets/native/hooks', 'native-hooks'),
 ]

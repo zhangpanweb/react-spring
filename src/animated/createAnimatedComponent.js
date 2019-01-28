@@ -1,9 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef, useImperativeMethods } from 'react'
 import AnimatedProps from './AnimatedProps'
 import { handleRef, is } from '../shared/helpers'
-import * as Globals from './Globals'
-
-// todo, turn this into hooks
+import { applyAnimatedValues } from './Globals'
 
 export default function createAnimatedComponent(Component) {
   class AnimatedComponent extends React.Component {
@@ -23,7 +21,7 @@ export default function createAnimatedComponent(Component) {
     }
 
     setNativeProps(props) {
-      const didUpdate = Globals.applyAnimatedValues.fn(this.node, props, this)
+      const didUpdate = applyAnimatedValues.fn(this.node, props, this)
       if (didUpdate === false) this.forceUpdate()
     }
 
@@ -35,7 +33,7 @@ export default function createAnimatedComponent(Component) {
     // forceUpdate.
     callback = () => {
       if (this.node) {
-        const didUpdate = Globals.applyAnimatedValues.fn(
+        const didUpdate = applyAnimatedValues.fn(
           this.node,
           this.propsAnimated.getAnimatedValue(),
           this

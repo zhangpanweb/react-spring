@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useSpring, animated } from 'react-spring/hooks'
+import { useSpring, animated } from 'react-spring'
 import './styles.css' // // Icons made by Freepik from www.flaticon.com
 
 const calc = (x, y, r) => [x - r.left - r.width / 2, y - r.top - r.height / 2]

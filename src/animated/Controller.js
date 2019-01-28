@@ -77,21 +77,16 @@ export default class Controller {
     if (this.queue.length) {
       this.idle = false
 
-      //console.log("  start QUEUE", this.id)
       // The guid helps us tracking frames, a new queue over an old one means an override
       // We discard async calls in that case
       const local = (this.local = ++this.guid)
       const queue = this.queue
       this.queue = []
 
-      //console.log('  ', this._id, "start queue", queue)
-
       // Go through each entry and execute it
       queue.forEach(({ delay, ...props }, index) => {
         const cb = finished => {
-          //console.log('  cb', this.id, index, queue.length - 1, finished)
           if (index === queue.length - 1 && local === this.guid && finished) {
-            //console.log('  ', this._id, "finished", local, this.guid)
             this.idle = true
             if (this.props.onRest) this.props.onRest(this.merged)
           }
@@ -113,10 +108,7 @@ export default class Controller {
     }
     // Otherwise we kick of the frameloop
     else {
-      //console.log('  ', this._id, 'start')
-      //console.log("    start FRAMELOOP", this.id)
       if (is.fun(onEnd)) this.listeners.push(onEnd)
-      //this.startTime = now()
       if (this.props.onStart) this.props.onStart()
       start(this)
     }
@@ -237,15 +229,6 @@ export default class Controller {
         const hasNewGoal = !is.equ(newValue, entry.previous)
         const hasNewConfig = !is.equ(toConfig, entry.config)
 
-        /*console.log(
-          '  > diff',
-          name,
-          currentValue,
-          '>',
-          newValue,
-          'prev:',
-          entry.previous
-        )*/
         // Change animation props when props indicate a new goal (new value differs from previous one)
         // and current values differ from it. Config changes trigger a new update as well (though probably shouldn't?)
         if (
@@ -320,13 +303,11 @@ export default class Controller {
             },
           }
         } else {
-          //console.log('    noop')
           if (!currentValueDiffersFromGoal) {
             // So ... the current target value (newValue) appears to be different from the previous value,
             // which normally constitutes an update, but the actual value (currentValue) matches the target!
             // In order to resolve this without causing an animation update we silently flag the animation as done,
             // which it technically is. Interpolations also needs a config update with their target set to 1.
-            //console.log('    reset silently')
             if (isInterpolation) {
               parent.setValue(1, false)
               interpolation.updateConfig({ output: [newValue, newValue] })

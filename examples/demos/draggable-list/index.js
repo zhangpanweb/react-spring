@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import clamp from 'lodash/clamp'
 import { useGesture } from 'react-with-gesture'
-import { useSprings, animated, interpolate } from 'react-spring/hooks'
+import { useSprings, animated, interpolate } from 'react-spring'
 import './styles.css'
 
 // Swaps two values in an array

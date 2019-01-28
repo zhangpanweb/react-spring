@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { useTrail, animated } from 'react-spring/hooks'
+import { useTrail, animated } from 'react-spring'
 import './styles.css'
 
 const items = ['Lorem', 'ipsum', 'dolor', 'sit']

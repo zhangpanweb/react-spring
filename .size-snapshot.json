@@ -111,5 +111,19 @@
         "code": 25161
       }
     }
+  },
+  "dist/web-hooks.js": {
+    "bundled": 72998,
+    "minified": 33639,
+    "gzipped": 11242,
+    "treeshaked": {
+      "rollup": {
+        "code": 13089,
+        "import_statements": 262
+      },
+      "webpack": {
+        "code": 14298
+      }
+    }
   }
 }

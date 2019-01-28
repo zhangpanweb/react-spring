@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { useSprings, useTransition, animated } from 'react-spring/hooks'
+import { useSprings, useTransition, animated } from 'react-spring'
 import './styles.css'
 
 const pages = [
@@ -31,8 +31,8 @@ export default function App() {
     initial: { opacity: 1, transform: 'translate3d(0%,0,0)' },
     enter: { opacity: 1, transform: 'translate3d(0%,0,0)' },
     leave: { opacity: 0, transform: 'translate3d(-50%,0,0)' },
-    unique: true,
-    reset: true,
+    //unique: true,
+    //reset: true,
   })
 
   return (
