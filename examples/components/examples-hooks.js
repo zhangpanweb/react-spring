@@ -3,7 +3,7 @@ export default [
     name: 'goo',
     title: 'Goo blobs',
     link: 'https://codesandbox.io/embed/8zx4ppk01l',
-    tags: ['useSpring'],
+    tags: ['useTrail'],
     code: {
       useSpring: `const [trail, set] = useTrail(3, () => ({ xy: [0, 0] }))
 const tr = (x, y) => \`translate3d(\${x}px,\${y}px,0)\`

@@ -1,0 +1,82 @@
+---
+name: Introduction
+route: /
+order: 1000
+---
+
+import { Tweet } from 'react-twitter-widgets'
+
+# Introduction
+
+<p>
+  <span className="highlight">react-spring is a set of simple, spring-physics based primitives</span> (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to solve each and every problem but rather to give you tools flexible enough to confidently cast ideas into moving interfaces.
+</p>
+
+Our goal is to bridge Christopher Chedeau's [animated](https://github.com/animatedjs/animated) (which is used in react-native by default) with Cheng Lou's [react-motion](https://github.com/chenglou/react-motion). Although both are similarily spring-physics based they are still polar opposites. For a more detailed explanation read [Why React needed yet another animation library](https://medium.com/@drcmda/why-react-needed-yet-another-animation-library-introducing-react-spring-8212e424c5ce).
+
+|                | Declarative | Primitives | Interpolations | Performance |
+| -------------- | ----------- | ---------- | -------------- | ----------- |
+| React-motion   | ✅          | ✅         | ❌             | ❌          |
+| Animated       | ❌          | ❌         | ✅             | ✅          |
+| React-spring   | ✅          | ✅         | ✅             | ✅          |
+
+## Installation
+
+    npm install react-spring
+
+## People say
+
+<div style={{ display: "grid",
+  gridGap: 20,
+  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+  gridAutoRows: "minmax(200px, auto)" }}>
+<Tweet tweetId='1006931395003015170' options={{ width: '400' }}/>
+<Tweet tweetId='1033962041298509824' options={{ conversation: 'none', cards: 'hidden', width: '400' }}/>
+<Tweet tweetId='1007560091430801409' options={{ conversation: 'none', width: '400' }}/>
+<Tweet tweetId='1033964001246543872' options={{ conversation: 'none', width: '400' }} />
+<Tweet tweetId='1030826919124590597' options={{ conversation: 'none', width: '400' }}/>
+<Tweet tweetId='1005463922772664320' options={{ conversation: 'none', width: '400' }}/>
+<Tweet tweetId='1032284123161931778' options={{ conversation: 'none', width: '400', cards: 'hidden' }}/>
+<Tweet tweetId='983054609353707520' options={{ conversation: 'none', width: '400' }}/>
+<Tweet tweetId='1087456685080358918' options={{ conversation: 'none', width: '400' }}/>
+</div>
+
+## Used by
+
+<div style={{ display: "grid",
+  gridGap: 20,
+  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+  gridAutoRows: "minmax(200px, auto)" }}>
+  <a href="https://nextjs.org/"><img width="280" src="https://process.filestackapi.com/cache=expiry:max/resize=width:1050/compress/FloGbmnXSe3Gd49LAWXQ"/></a>
+  <a href="https://codesandbox.io/"><img width="280" src="https://camo.githubusercontent.com/a67bdde6bc5d15103e2516099107980790c0f11f/68747470733a2f2f636f646573616e64626f782e696f2f7374617469632f696d672f62616e6e65722e706e67"/></a>
+  <a href="https://aragon.org/"><img width="280" src="https://github.com/aragon/design/blob/master/readme-logo.png?raw=true"/></a>
+  <a href="https://devhubapp.com"><img width="280" src="https://user-images.githubusercontent.com/619186/49823485-eed18480-fd66-11e8-88c0-700d840ad4f1.png"/></a>
+  <a href="https://quill.chat"><img width="280" src="https://quill.chat/079e00e7e0cbbeaa3aae571d657ca75b.png"/></a>
+</div>
+
+And [many others](https://github.com/drcmda/react-spring/network/dependents) ...
+
+## Gold sponsors
+
+<a href="https://aragon.org/">
+  <img width="300" src="https://wiki.aragon.org/design/logo/svg/imagetype.svg"/>
+</a>
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+
+<a href="https://opencollective.com/react-spring/sponsor/0/website" target="_blank">
+  <img src="https://opencollective.com/react-spring/sponsor/0/avatar.svg"/>
+</a>
+<a href="https://opencollective.com/react-spring/sponsor/1/website" target="_blank">
+  <img src="https://opencollective.com/react-spring/sponsor/1/avatar.svg"/>
+</a>
+
+## Backers
+
+Thank you to all our backers! 🙏
+
+<a href="https://opencollective.com/react-spring#backers" target="_blank">
+  <img src="https://opencollective.com/react-spring/backers.svg?width=890"/>
+</a>

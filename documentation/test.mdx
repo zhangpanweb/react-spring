@@ -1,0 +1,93 @@
+---
+name: useSpring
+route: /useSpring
+order: 7
+---
+
+import DemoGrid from '../examples/components/DemoGrid'
+import Demo from '../examples/components/Demo'
+import examples from '../examples/components/examples-hooks'
+
+# useSpring
+
+```js
+import { useSpring, animated } from 'react-spring'
+
+// Update props by overwrite
+const props = useSpring(config)
+// Or, update props by calling an updater-function
+const [props, set] = useSpring(() => config)
+```
+
+blabla
+
+## Interpolation
+
+* colors (names, rgb, rgba, hsl, hsla, gradients)
+* absolute lengths (cm, mm, in, px, pt, pc)
+* relative lengths (em, ex, ch, rem, vw, vh, vmin, vmax, %)
+* angles (deg, rad, grad, turn)
+* flex and grid units (fr, etc)
+* all HTML attributes
+* SVG paths (as long as the number of points matches, otherwise use [custom interpolation](https://codesandbox.io/embed/lwpkp46om))
+* arrays
+* string patterns (transform, border, boxShadow, etc)
+* auto is valid
+* non-animatable string values (visibility, pointerEvents, etc)
+* scrollTop/scrollLeft ([native only](/perf), since these aren't actual dom properties)
+
+<br />
+
+Of course the only properties that the browser can animate relatively cheaply are [composite properties](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/) (opacity, transform), so you might want to watch out for that.
+
+## Config
+
+<p>
+  <span className="highlight">Spring are configurable</span>, delays, tension, friction, resets, everything can be tuned. There are also a couple of generic presets that will cover some common ground.
+</p>
+
+```jsx
+import { Spring, config } from 'react-spring'
+
+<Spring config={config.default} />
+````
+
+| Property                  | Value |
+| ------------------------- | ------- |
+| config.default             | { tension: 170, friction: 26 } |
+| config.gentle              | { tension: 120, friction: 14 } |
+| config.wobbly              | { tension: 180, friction: 12 } |
+| config.stiff               | { tension: 210, friction: 20 } |
+| config.slow                | { tension: 280, friction: 60 } |
+| config.molasses            | { tension: 280, friction: 120 } |
+
+## Properties
+
+bla
+
+| Property | Type | Description |
+| -------- | ---- | -------- | ------- | ----------- |
+| from     | obj | Base values, optional |
+| to       | obj/fn/array(obj) | Animates to ... |
+| delay     | number/fn | Delay in ms before the animation starts. Also valid as a function for individual keys: key => delay |
+| immediate     | bool/fn | Prevents animation if true. Also valid as a function for individual keys: key => immediate |
+| config     | obj/fn | Spring config (contains mass, tension, friction, etc). Also valid as a function for individual keys: key => config |
+| reset     | bool | The spring starts to animate from scratch (from -> to) if set true |
+| reverse     | bool | "from" and "to" are switched if set true, this will only make sense in combination with the "reset" flag |
+| onStart     | fn | Callback when the animation starts to animate |
+| onRest     | fn | Callback when the animation comes to a still-stand |
+| onFrame     | fn | Frame by frame callback, first argument passed is the animated value |
+
+## Demos
+
+bla
+
+<DemoGrid padding={0}>
+  {examples.filter(data => data.tags.includes('useSpring')).map(data => (
+    <Demo
+      key={data.name}
+      {...data}
+      import={import('../examples/demos/' + data.name)}
+    />
+  ))}
+</DemoGrid>
