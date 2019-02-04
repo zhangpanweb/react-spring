@@ -14,7 +14,7 @@ import examples from '../examples/components/examples-hooks'
 import { useSpring, animated } from 'react-spring'
 ```
 
-useSpring accepts props and returns animated-props, which you can now distribute among your views. Use it whenever you have a set of values that you want to animate. The hook takes a generic spring config (see [shared api](/api)). Any property that useSpring does not recognize will be combined into "to", for instance `opacity: 1` will become `to: { opacity: 1 }`.
+Turns values into animated-values.
 
 ### Either: overwrite values to change the animation
 
@@ -26,7 +26,7 @@ const props = useSpring({ opacity: toggle ? 1 : 0 })
 
 ### Or: pass a function that returns values, and update using "set"
 
-You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
+You will get a `set` function back. It will not cause the component to render like an overwrite would (still the animation executes of course). Handling updates like this is useful for fast-occurring updates, but you should generally prefer it.
 
 ```jsx
 const [props, set] = useSpring(() => ({ opacity: 1 }))
@@ -48,9 +48,22 @@ All properties of the [shared-api](/api) apply.
 
 ## Additional notes
 
+### To-prop shortcut
+
+Any property that useSpring does not recognize will be combined into "to", for instance `opacity: 1` will become `to: { opacity: 1 }`.
+
+```jsx
+// This ...
+const props = useSpring({ opacity: 1, color: 'red' })
+// is a shortcut for this ...
+const props = useSpring({ to: { opacity: 1, color: 'red' } })
+```
+
+### Async chains/scripts
+
 The to-property also allows you to either script your animation, or chain multiple animations together. Since these animations will execute asynchroneously make sure to provide a "from" property for base values, otherwise props will be empty.
 
-This is how you create a script:
+#### This is how you create a script
 
 ```jsx
 const props = useSpring({ 
@@ -64,7 +77,7 @@ const props = useSpring({
 return <animated.div style={props}>I will fade in and out</animated.div>
 ```
 
-And this is how you create a chain:
+#### And this is how you create a chain
 
 ```jsx
 const props = useSpring({ 

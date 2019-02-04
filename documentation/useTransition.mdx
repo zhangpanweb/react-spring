@@ -14,7 +14,7 @@ import examples from '../examples/components/examples-hooks'
 import { useTransition, animated } from 'react-spring'
 ```
 
-The useTransition hook is similar to Reacts TransitionGroup, after feeding it your items, keys (which can be `null` if items are self descriptive, for instance an array of strings, etc), and lifecycle-configs, it takes over and manages them. When you add or remove items (by overwriting the config), it will animate these actions.
+An animated TransitionGroup. Feed it your items, keys (which can be `null` if items are atomic), and lifecycles. Whenever items are added or removed, it will animate these changes.
 
 ```jsx
 const transitions = useTransition(items, item => item.id, {
@@ -46,10 +46,10 @@ All properties of the [shared-api](/api) apply.
 
 ## Additional notes
 
-The initial/from/enter/update/leave lifecycles can be functional, in that case you have access to the item they're referring to. You can also return a function or an array to either create a scripted or arrayed multi-stage transition.
+The initial/from/enter/update/leave lifecycles can be objects, arrays or functions. When you provide a function you have access to individual items. The function is allowed to return plain objects, or either an array or a function for multi-stage transitions. When you provide a plain array you also can form a basic multi-stage transition (without access to the item). 
 
 ```jsx
-useTransition(items, null, {
+useTransition(items, items => items.id, {
   enter: item => [
     { opacity: item.opacity, height: item.height },
     { life: '100%' },
