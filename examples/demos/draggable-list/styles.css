@@ -15,13 +15,13 @@
 
 .draggable-inner {
   position: relative;
-  width: 320px;
+  width: 240px;
   height: 240px;
 }
 
 .draggable-inner > div {
   position: absolute;
-  width: 320px;
+  width: 220px;
   height: 50px;
   overflow: visible;
   pointer-events: auto;

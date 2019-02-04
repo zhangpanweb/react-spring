@@ -19,6 +19,7 @@
   position: absolute;
   will-change: transform, width, height, opacity;
   padding: 8px;
+  box-sizing: border-box;
 }
 
 .mgrid-list > div > div {

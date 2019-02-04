@@ -9,14 +9,23 @@ import { Tweet } from 'react-twitter-widgets'
 
 # Introduction
 
-react-spring is a *set of simple, spring-physics based primitives* (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to give each and every problem a specific solution, but rather to give you tools flexible enough to confidently cast your ideas into moving interfaces, or introduce motion to the static.
+<p align="middle">
+  <a href="https://codesandbox.io/embed/n9vo1my91p" style={{ margin: 10 }}><img src="https://i.imgur.com/tg1mN1F.gif" width="410"/></a>
+  <a href="https://codesandbox.io/embed/j0y0vpz59" style={{ margin: 10 }}><img src="https://i.imgur.com/OxGLHeT.gif" width="280"/></a>
+  <a href="https://codesandbox.io/embed/r5qmj8m6lq" style={{ margin: 10 }}><img src="https://i.imgur.com/ifdCBvG.gif" width="90"/></a>
+</p>
+<p align="middle">
+  <i>These demos are real, click them!</i>
+</p>
+
+**react-spring** is a *set of simple, spring-physics based primitives* (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to give each and every problem a specific solution, but rather to give you tools flexible enough to confidently cast your ideas into moving interfaces, or introduce motion to the static.
 
 ## Why springs and not durations
 
 The most basic principle you will be working with is called a `spring`. A spring *does not have a curve, it does not have a duration, it is physics based*! Think of a weight attached to a spring:
 
 <p align="middle">
-  <img src="http://session.masteringphysics.com/problemAsset/1010961/11/MHM_fp_0.jpg" />
+  <img src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
 </p>
 
 Let the weight loose and it rushes down, coming to rest when the force is overcome. Yank the spring up and it will expend its energy and move up according to its momentum. Time based animation on the other hand would have it drop down in an arbitrary timeframe, say 2 seconds. Pull up mid-air and it would stop naively, then move back 2 seconds again. No matter which curve you choose, it will never look natural.

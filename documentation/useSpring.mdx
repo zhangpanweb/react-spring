@@ -1,7 +1,7 @@
 ---
 name: useSpring
 route: /useSpring
-order: 7
+order: 80
 ---
 
 import DemoGrid from '../examples/components/DemoGrid'
@@ -12,75 +12,71 @@ import examples from '../examples/components/examples-hooks'
 
 ```js
 import { useSpring, animated } from 'react-spring'
-
-// Update props by overwrite
-const props = useSpring(config)
-// Or, update props by calling an updater-function
-const [props, set] = useSpring(() => config)
 ```
 
-blabla
+useSpring accepts props and returns animated-props, which you can now distribute among your views. Use it whenever you have a set of values that you want to animate. The hook takes a generic spring config (see [shared api](/api)). Any property that useSpring does not recognize will be combined into "to", for instance `opacity: 1` will become `to: { opacity: 1 }`.
 
-## Interpolation
+### Either: overwrite values to change the animation
 
-* colors (names, rgb, rgba, hsl, hsla, gradients)
-* absolute lengths (cm, mm, in, px, pt, pc)
-* relative lengths (em, ex, ch, rem, vw, vh, vmin, vmax, %)
-* angles (deg, rad, grad, turn)
-* flex and grid units (fr, etc)
-* all HTML attributes
-* SVG paths (as long as the number of points matches, otherwise use [custom interpolation](https://codesandbox.io/embed/lwpkp46om))
-* arrays
-* string patterns (transform, border, boxShadow, etc)
-* auto is valid
-* non-animatable string values (visibility, pointerEvents, etc)
-* scrollTop/scrollLeft ([native only](/perf), since these aren't actual dom properties)
-
-<br />
-
-Of course the only properties that the browser can animate relatively cheaply are [composite properties](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/) (opacity, transform), so you might want to watch out for that.
-
-## Config
-
-<p>
-  <span className="highlight">Spring are configurable</span>, delays, tension, friction, resets, everything can be tuned. There are also a couple of generic presets that will cover some common ground.
-</p>
+If you re-render the component with changed props, the animation will update.
 
 ```jsx
-import { Spring, config } from 'react-spring'
+const props = useSpring({ opacity: toggle ? 1 : 0 })
+```
 
-<Spring config={config.default} />
-````
+### Or: pass a function that returns values, and update using "set"
 
-| Property                  | Value |
-| ------------------------- | ------- |
-| config.default             | { tension: 170, friction: 26 } |
-| config.gentle              | { tension: 120, friction: 14 } |
-| config.wobbly              | { tension: 180, friction: 12 } |
-| config.stiff               | { tension: 210, friction: 20 } |
-| config.slow                | { tension: 280, friction: 60 } |
-| config.molasses            | { tension: 280, friction: 120 } |
+You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
+
+```jsx
+const [props, set] = useSpring(() => ({ opacity: 1 }))
+// ...
+set({ opacity: toggle ? 1 : 0 })
+```
+
+### Finally: distribute animated props among the view
+
+The return value is an object containing animated props. 
+
+```jsx
+return <animated.div style={props}>i will fade</animated.div>
+```
 
 ## Properties
 
-bla
+All properties of the [shared-api](/api) apply.
 
-| Property | Type | Description |
-| -------- | ---- | -------- | ------- | ----------- |
-| from     | obj | Base values, optional |
-| to       | obj/fn/array(obj) | Animates to ... |
-| delay     | number/fn | Delay in ms before the animation starts. Also valid as a function for individual keys: key => delay |
-| immediate     | bool/fn | Prevents animation if true. Also valid as a function for individual keys: key => immediate |
-| config     | obj/fn | Spring config (contains mass, tension, friction, etc). Also valid as a function for individual keys: key => config |
-| reset     | bool | The spring starts to animate from scratch (from -> to) if set true |
-| reverse     | bool | "from" and "to" are switched if set true, this will only make sense in combination with the "reset" flag |
-| onStart     | fn | Callback when the animation starts to animate |
-| onRest     | fn | Callback when the animation comes to a still-stand |
-| onFrame     | fn | Frame by frame callback, first argument passed is the animated value |
+## Additional notes
 
-## Demos
+The to-property also allows you to either script your animation, or chain multiple animations together. Since these animations will execute asynchroneously make sure to provide a "from" property for base values, otherwise props will be empty.
 
-bla
+This is how you create a script:
+
+```jsx
+const props = useSpring({ 
+  to: async next => {
+    await next({ opacity: 1, color: '#ffaaee' })
+    await next({ opacity: 0, color: 'rgb(14,26,19)' })
+  },
+  from: { opacity: 0, color: 'red' } 
+})
+// ...
+return <animated.div style={props}>I will fade in and out</animated.div>
+```
+
+And this is how you create a chain:
+
+```jsx
+const props = useSpring({ 
+  to: [{ opacity: 1, color: '#ffaaee' }, { opacity: 0, color: 'rgb(14,26,19)' }],
+  from: { opacity: 0, color: 'red' } 
+})
+// ...
+return <animated.div style={props}>I will fade in and out</animated.div>
+```
+
+
+## Demos
 
 <DemoGrid padding={0}>
   {examples.filter(data => data.tags.includes('useSpring')).map(data => (

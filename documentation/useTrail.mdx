@@ -1,0 +1,59 @@
+---
+name: useTrail
+route: /useTrail
+order: 60
+---
+
+import DemoGrid from '../examples/components/DemoGrid'
+import Demo from '../examples/components/Demo'
+import examples from '../examples/components/examples-hooks'
+
+# useTrail
+
+```js
+import { useTrail, animated } from 'react-spring'
+```
+
+useSprings manages multiple springs. Use it whenever you have an arry of values that you want to animate (static lists, etc). It behaves exactly like [useSpring](/useSpring) with the distinction that you supply a count as the first argument, while the spring config is given for each item, either functionally, or as an array. 
+
+### Either: overwrite values to change the animation
+
+If you re-render the component with changed props, the animation will update.
+
+```jsx
+const springs = useSprings(items.length, items.map(item => ({ opacity: item.opacity }))
+```
+
+### Or: pass a function that returns values, and update using "set"
+
+You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
+
+```jsx
+const [springs, set] = useSprings(items.length, index => ({ opacity: items[index].opacity }))
+// ...
+set(index => ({ opacity: items[index].opacity }))
+```
+
+### Finally: distribute animated props among the view
+
+The return value is an array containing animated props.
+
+```jsx
+return springs.map(item => <animated.div style={props} />)
+```
+
+## Properties
+
+All properties of the [shared-api](/api) apply.
+
+## Demos
+
+<DemoGrid padding={0}>
+  {examples.filter(data => data.tags.includes('useTrail')).map(data => (
+    <Demo
+      key={data.name}
+      {...data}
+      import={import('../examples/demos/' + data.name)}
+    />
+  ))}
+</DemoGrid>

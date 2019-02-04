@@ -40,12 +40,12 @@ useSpring({ ..., config: config.default })
 
 | Property                  | Value |
 | ------------------------- | ------- |
-| config.default             | { tension: 170, friction: 26 } |
-| config.gentle              | { tension: 120, friction: 14 } |
-| config.wobbly              | { tension: 180, friction: 12 } |
-| config.stiff               | { tension: 210, friction: 20 } |
-| config.slow                | { tension: 280, friction: 60 } |
-| config.molasses            | { tension: 280, friction: 120 } |
+| config.default             | { mass: 1, tension: 170, friction: 26 } |
+| config.gentle              | { mass: 1, tension: 120, friction: 14 } |
+| config.wobbly              | { mass: 1, tension: 180, friction: 12 } |
+| config.stiff               | { mass: 1, tension: 210, friction: 20 } |
+| config.slow                | { mass: 1, tension: 280, friction: 60 } |
+| config.molasses            | { mass: 1, tension: 280, friction: 120 } |
 
 ## Properties
 
@@ -53,7 +53,7 @@ useSpring({ ..., config: config.default })
 useSpring({ from: { ... }, to: { ... }, delay: 100, onRest: () => ... })
 ```
 
-All primitives inherit the following properties (though some of them may bering their own addtionally):
+All primitives inherit the following properties (though some of them may bring their own additionally):
 
 | Property | Type | Description |
 | -------- | ---- | -------- | ------- | ----------- |

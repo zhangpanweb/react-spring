@@ -1,7 +1,22 @@
 import React from 'react'
 import Loadable from 'react-loadable'
 import styled from 'styled-components'
-//import { Spring, animated } from 'react-spring'
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) return <h1>Something went wrong.</h1>
+    return this.props.children
+  }
+}
 
 export default class Demo extends React.Component {
   state = { code: undefined, visible: false }
@@ -64,9 +79,10 @@ export default class Demo extends React.Component {
           )}
         </Header>
         <Content>
-          <div>
-            <this.component />
-            {/*overlayCode && (
+          <ErrorBoundary>
+            <div>
+              <this.component />
+              {/*overlayCode && (
               <Spring
                 native
                 from={{ opacity: 0 }}
@@ -74,7 +90,8 @@ export default class Demo extends React.Component {
                 {props => <Code style={props} children={this.state.code} />}
               </Spring>
             )*/}
-          </div>
+            </div>
+          </ErrorBoundary>
         </Content>
       </Container>
     )

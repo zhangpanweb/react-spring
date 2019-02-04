@@ -14,7 +14,7 @@ const trans = (x, y, s) =>
 export default function Card() {
   const ref = useRef(null)
   const [xys, set] = useState([0, 0, 1])
-  const [config, knobs] = useKnobs({ mass: 5, tension: 350, friction: 40 })
+  const [config, knobs] = useKnobs({ mass: 1, tension: 170, friction: 26 })
   const props = useSpring({ xys, config })
 
   return (
