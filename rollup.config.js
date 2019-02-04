@@ -60,11 +60,18 @@ function createConfig(entry, out, name) {
 }
 
 export default [
-  /*...createConfig('addons/index', 'addons', 'ReactSpringAddons'),
-  ...createConfig('targets/web/index', 'web', 'ReactSpring'),
+  ...createConfig('targets/web/index', 'hooks'),
   ...createConfig('targets/native/index', 'native'),
-  ...createConfig('targets/universal/index', 'universal'),
-  ...createConfig('targets/konva/index', 'konva'),*/
-  ...createConfig('targets/web/index', 'web-hooks'),
-  //...createConfig('targets/native/hooks', 'native-hooks'),
+  ...createConfig('renderprops/targets/web/index', 'renderprops'),
+  ...createConfig(
+    'renderprops/addons/index',
+    'renderprops-addons',
+    'ReactSpringAddons'
+  ),
+  ...createConfig('renderprops/targets/native/index', 'renderprops-native'),
+  ...createConfig(
+    'renderprops/targets/universal/index',
+    'renderprops-universal'
+  ),
+  ...createConfig('renderprops/targets/konva/index', 'renderprops-konva'),
 ]
