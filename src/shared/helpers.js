@@ -4,7 +4,7 @@ import AnimatedArray from '../animated/AnimatedArray'
 
 export const is = {
   arr: Array.isArray,
-  obj: a => typeof a === 'object',
+  obj: a => Object.prototype.toString.call(a) === '[object Object]',
   fun: a => typeof a === 'function',
   str: a => typeof a === 'string',
   num: a => typeof a === 'number',

@@ -1,0 +1,69 @@
+---
+name: Shared API
+route: /api
+order: 90
+---
+
+import { CodeMirror, RewindSpringProvider, RewindSpring, animated } from './components'
+import DemoGrid from '../examples/components/DemoGrid'
+import Demo from '../examples/components/Demo'
+import examples from '../examples/components/examples-hooks'
+
+# Shared API
+
+## Configs
+
+Spring are configurable and can be tuned.
+
+| Property                  | Default | Description       |
+| ------------------------- | ----------- | ------------- |
+| mass                      | 1           | spring mass
+| tension                   | 170         | spring energetic load
+| friction                  | 26          | spring resistence
+| clamp                     | false       | when true, stops the spring once it overshoots its boundaries
+| precision                 | 0.01        | precision
+| velocity                  | 0           | initial velocity
+| duration                  | undefined    | if > than 0 will switch to a duration-based animation instead of spring physics
+| easing                    | t => t      | linear by default, you can use any easing you want, for instance d3-ease
+
+<Demo import={import('../examples/demos/configs')} />
+
+## Presets
+
+There are also a couple of generic presets that will cover some common ground.
+
+```jsx
+import { ..., config } from 'react-spring'
+
+useSpring({ ..., config: config.default })
+```
+
+| Property                  | Value |
+| ------------------------- | ------- |
+| config.default             | { tension: 170, friction: 26 } |
+| config.gentle              | { tension: 120, friction: 14 } |
+| config.wobbly              | { tension: 180, friction: 12 } |
+| config.stiff               | { tension: 210, friction: 20 } |
+| config.slow                | { tension: 280, friction: 60 } |
+| config.molasses            | { tension: 280, friction: 120 } |
+
+## Properties
+
+```jsx
+useSpring({ from: { ... }, to: { ... }, delay: 100, onRest: () => ... })
+```
+
+All primitives inherit the following properties (though some of them may bering their own addtionally):
+
+| Property | Type | Description |
+| -------- | ---- | -------- | ------- | ----------- |
+| from     | obj | Base values, optional |
+| to       | obj/fn/array(obj) | Animates to ... |
+| delay     | number/fn | Delay in ms before the animation starts. Also valid as a function for individual keys: key => delay |
+| immediate     | bool/fn | Prevents animation if true. Also valid as a function for individual keys: key => immediate |
+| config     | obj/fn | Spring config (contains mass, tension, friction, etc). Also valid as a function for individual keys: key => config |
+| reset     | bool | The spring starts to animate from scratch (from -> to) if set true |
+| reverse     | bool | "from" and "to" are switched if set true, this will only make sense in combination with the "reset" flag |
+| onStart     | fn | Callback when the animation starts to animate |
+| onRest     | fn | Callback when the animation comes to a still-stand |
+| onFrame     | fn | Frame by frame callback, first argument passed is the animated value |

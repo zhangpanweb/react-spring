@@ -1,9 +1,10 @@
 .mgrid {
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   background: #f0f0f0;
   padding: 8px;
+  height: 100%;
 }
 
 .mgrid-list {

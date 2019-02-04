@@ -77,10 +77,18 @@ export default class Controller {
     if (this.queue.length) {
       this.idle = false
 
+      // Updates can interrupt trailing queues, in that case we just merge values
+      if (this.localQueue) {
+        this.localQueue.forEach(({ from = {}, to = {} }) => {
+          if (is.obj(from)) this.merged = { ...from, ...this.merged }
+          if (is.obj(to)) this.merged = { ...this.merged, ...to }
+        })
+      }
+
       // The guid helps us tracking frames, a new queue over an old one means an override
-      // We discard async calls in that case
+      // We discard async calls in that caseÍ
       const local = (this.local = ++this.guid)
-      const queue = this.queue
+      const queue = (this.localQueue = this.queue)
       this.queue = []
 
       // Go through each entry and execute it
@@ -181,8 +189,7 @@ export default class Controller {
     }
 
     // This will collect all props that were ever set, reset merged props when necessary
-    let extra = this.merged // reset ? {} : this.merged
-    this.merged = { ...from, ...extra, ...to }
+    this.merged = { ...from, ...this.merged, ...to }
 
     this.hasChanged = false
     // Attachment handling, trailed springs can "attach" themselves to a previous spring
@@ -208,9 +215,6 @@ export default class Controller {
         let toValue = isNumber || isArray ? value : isString ? value : 1
         let toConfig = callProp(config, name)
         if (target) toValue = target.animations[name].parent
-
-        // this is all wrong, change detection has to start here! or else interpolated values will always move between
-        // 0-1 every time the animation is updated, which makes no sense at all!
 
         let parent = entry.parent,
           interpolation = entry.interpolation,

@@ -17,39 +17,10 @@ export default function App() {
     <div style={{ width: '100%', height: '100%' }}>
       <button
         onClick={async () => {
-          //console.log("click, ctrl0 update().start()")
-          ctrl0.update({ left: 400, background: 'green' }).start()
-
-          console.log('click, ctrl1 update().start()')
-          ctrl1
-            .update({
-              left: 400,
-              background: 'red',
-              delay: n => (n === 'left' ? 4000 : 0),
-              onRest: () => console.log('onrest1'),
-            })
-            .start(() => console.log('rest1'))
-
-          await new Promise(r => setTimeout(r, 1000))
-          console.log('click, ...ctrl1 update().start()')
-          ctrl1
-            .update({
-              left: 200,
-              background: 'red',
-              delay: n => (n === 'left' ? 1000 : 0),
-              onRest: () => console.log('onrest2'),
-            })
-            .start(() => console.log('rest2'))
-          /*await new Promise(r => ctrl1.update({ delay: 400 }).start(r))
-
-          ctrl0.update({ left: 0, background: 'red' }).start()
-          await new Promise(r => ctrl1.update({ delay: 400, left: 0, background: 'green' }).start(r))
-
-          await new Promise(r => setTimeout(r, 50))>*/
-          /*console.log('start new')
-          await new Promise(r =>
-            ctrl1.update({ left: 200, background: 'green' }).start(r)
-          )*/
+          ctrl0.update({ delay: 500, left: 400, background: 'hotpink' }).start()
+          await new Promise(r => setTimeout(r, 250))
+          ctrl0.update({ left: 200 }).start()
+          //ctrl0.update({ left: 400 }).start()
         }}>
         Change speed
       </button>

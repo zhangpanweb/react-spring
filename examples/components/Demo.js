@@ -38,12 +38,14 @@ export default class Demo extends React.Component {
       <Container fullscreen={fullscreen}>
         <Header>
           <h1>{title}</h1>
-          <p>
-            {link.includes('codesandbox.io') ? 'Codesandbox' : 'Source'}:{' '}
-            <a target="_blank" href={link}>
-              {link.slice(link.lastIndexOf('/'))}
-            </a>
-          </p>
+          {link && (
+            <p>
+              {link.includes('codesandbox.io') ? 'Codesandbox' : 'Source'}:{' '}
+              <a target="_blank" href={link}>
+                {link.slice(link.lastIndexOf('/'))}
+              </a>
+            </p>
+          )}
           {description && <p>{description}</p>}
           {tags && (
             <p>

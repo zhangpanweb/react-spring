@@ -113,16 +113,16 @@
     }
   },
   "dist/web-hooks.js": {
-    "bundled": 74335,
-    "minified": 34138,
-    "gzipped": 11370,
+    "bundled": 71543,
+    "minified": 33114,
+    "gzipped": 11122,
     "treeshaked": {
       "rollup": {
-        "code": 23654,
-        "import_statements": 354
+        "code": 12742,
+        "import_statements": 362
       },
       "webpack": {
-        "code": 14682
+        "code": 13996
       }
     }
   }
