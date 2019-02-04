@@ -14,37 +14,35 @@ import examples from '../examples/components/examples-hooks'
 import { useChain, animated } from 'react-spring'
 ```
 
-useSprings manages multiple springs. Use it whenever you have an arry of values that you want to animate (static lists, etc). It behaves exactly like [useSpring](/useSpring) with the distinction that you supply a count as the first argument, while the spring config is given for each item, either functionally, or as an array. 
+The useChain hook allows you to set the execution order of previously defined animation-hooks, where one animation starts after the other in sequence. In order to do this you have to collect refs off the hooks you want to chain. A ref contains a managing instance with start/stop functionality (which you could call yourself if you wanted to). A hook that has given its ref will not start on its own from there on. The order in which you animate can be changed in subsequent render passes. 
 
-### Either: overwrite values to change the animation
-
-If you re-render the component with changed props, the animation will update.
+useChain does not change how you form your views otherwise, you can use the output you get from animation-hooks in the same manner as before.
 
 ```jsx
-const springs = useSprings(items.length, items.map(item => ({ opacity: item.opacity }))
+// Build a spring and catch its ref
+const springRef = useRef()
+const props = useSpring({ ...values, ref: springRef })
+// Build a transition and catch its ref
+const transitionRef = useRef()
+const transitions = useTransition({ ...values, ref: transitionRef })
+// First run the spring, when it concludes run the transition
+useChain([springRef, transitionRef])
+// Use the animated props like always
+return (
+  <animated.div style={props}>
+    {transitions.map(({ item, key, props }) =>
+      <animated.div key={key} style={props} />)}
+  </animated.div>
+)
 ```
 
-### Or: pass a function that returns values, and update using "set"
-
-You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
+If a sequence isn't what you want you can optionally define timeSteps and a timeFrame (which defaults to a second). timeSteps is just an array with offsets between 0-1 that correspend to beginning and the end of the timeFrame.
 
 ```jsx
-const [springs, set] = useSprings(items.length, index => ({ opacity: items[index].opacity }))
-// ...
-set(index => ({ opacity: items[index].opacity }))
+// The spring will start right away
+// The transition will start after 0.5 * 1000ms (the timeFrame default) = 500ms
+useChain([springRef, transitionRef], [0, 0.5])
 ```
-
-### Finally: distribute animated props among the view
-
-The return value is an array containing animated props.
-
-```jsx
-return springs.map(item => <animated.div style={props} />)
-```
-
-## Properties
-
-All properties of the [shared-api](/api) apply.
 
 ## Demos
 

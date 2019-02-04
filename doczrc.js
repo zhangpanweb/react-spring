@@ -148,7 +148,7 @@ export default {
         ...config.module,
         rules: [
           ...config.module.rules,
-          //{ test: () => true, sideEffects: true },
+          { test: () => true, sideEffects: true },
         ],
       },
       resolve: {

@@ -14,14 +14,14 @@ import examples from '../examples/components/examples-hooks'
 import { useTrail, animated } from 'react-spring'
 ```
 
-useSprings manages multiple springs. Use it whenever you have an arry of values that you want to animate (static lists, etc). It behaves exactly like [useSpring](/useSpring) with the distinction that you supply a count as the first argument, while the spring config is given for each item, either functionally, or as an array. 
+useTrail needs the amount of items you want to trail and the props you want to animate. It returns an array of animated-props, which you can then distribute among your views.
 
 ### Either: overwrite values to change the animation
 
 If you re-render the component with changed props, the animation will update.
 
 ```jsx
-const springs = useSprings(items.length, items.map(item => ({ opacity: item.opacity }))
+const trail = useTrail(items.length, { opacity: 1, from: { opacity: 0 } })
 ```
 
 ### Or: pass a function that returns values, and update using "set"
@@ -29,9 +29,9 @@ const springs = useSprings(items.length, items.map(item => ({ opacity: item.opac
 You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
 
 ```jsx
-const [springs, set] = useSprings(items.length, index => ({ opacity: items[index].opacity }))
+const [trail, set] = useTrail(items.length, () => ({ opacity: 1, from: { opacity: 0 } }))
 // ...
-set(index => ({ opacity: items[index].opacity }))
+set({ opacity: 0 })
 ```
 
 ### Finally: distribute animated props among the view
@@ -39,7 +39,7 @@ set(index => ({ opacity: items[index].opacity }))
 The return value is an array containing animated props.
 
 ```jsx
-return springs.map(item => <animated.div style={props} />)
+return trail.map(props => <animated.div style={props} />)
 ```
 
 ## Properties

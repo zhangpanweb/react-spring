@@ -16,7 +16,7 @@ export default function App() {
   const springRef = useRef()
   const { size, opacity, ...rest } = useSpring({
     from: { size: '20%', background: 'hotpink' },
-    size: open ? '100%' : '20%',
+    size: open ? '80%' : '20%',
     background: open ? 'white' : 'hotpink',
     config: { ...config.stiff, precision: 0.01 },
     ref: springRef,
@@ -61,12 +61,13 @@ const Main = styled('div')`
   align-items: center;
   justify-content: center;
   padding: 20px;
+  box-sizing: border-box;
 `
 
 const Sidebar = styled(animated.div)`
   position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   grid-gap: 20px;
   padding: 20px;
   background: white;
@@ -74,6 +75,7 @@ const Sidebar = styled(animated.div)`
   cursor: pointer;
   will-change: width, height;
   box-shadow: 0px 10px 10px -5px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 `
 
 const Content = styled(animated.div)`
@@ -93,8 +95,5 @@ const Item = styled(animated.div)`
   height: 100%;
   background: white;
   border-radius: 5px;
-  background-image: url(https://images.unsplash.com/photo-1544511916-0148ccdeb877?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1901&q=80i);
-  background-size: cover;
-  background-position: center center;
   will-change: transform, opacity;
 `
