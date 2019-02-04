@@ -23,9 +23,11 @@ is a *set of simple, spring-physics based primitives* (as in building blocks) th
 
     npm install react-spring
 
-### Documentation and Examples
+### Documentation and Examples 
 
-Full documentation and examples here: **[react-spring.surge.sh](https://react-spring.surge.sh/)**
+Hooks: **[react-spring-hooks.surge.sh](https://react-spring-hooks.surge.sh/)**
+
+Render-props: **[react-spring.surge.sh](https://react-spring.surge.sh/)**
 
 ---
 
@@ -34,7 +36,7 @@ Full documentation and examples here: **[react-spring.surge.sh](https://react-sp
 The most basic principle you will be working with is called a `spring`. A spring *does not have a curve, it does not have a duration, it is physics based*! Think of a weight attached to a spring:
 
 <p align="middle">
-  <img src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
+  <img width="300" src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
 </p>
 
 Let the weight loose and it rushes down, coming to rest when the force is overcome. Yank the spring up and it will expend its energy and move up according to its momentum. Time based animation on the other hand would have it drop down in an arbitrary timeframe, say 2 seconds. Pull up mid-air and it would stop naively, then move back 2 seconds again. No matter which curve you choose, it will never look natural.
