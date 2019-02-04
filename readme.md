@@ -2,20 +2,7 @@
   <img src="https://i.imgur.com/QZownhg.png" width="240" />
 </p>
 
-# react-spring
-
-<p align="middle">
-  <a href="https://codesandbox.io/embed/n9vo1my91p" style={{ margin: 10 }}><img src="https://i.imgur.com/tg1mN1F.gif" width="410"/></a>&nbsp;&nbsp;&nbsp;
-  <a href="https://codesandbox.io/embed/j0y0vpz59" style={{ margin: 10 }}><img src="https://i.imgur.com/OxGLHeT.gif" width="280"/></a>&nbsp;&nbsp;&nbsp;
-  <a href="https://codesandbox.io/embed/r5qmj8m6lq" style={{ margin: 10 }}><img src="https://i.imgur.com/ifdCBvG.gif" width="90"/></a>
-</p>
-<p align="middle">
-  <i>These demos are real, click them!</i>
-</p>
-
-is a *set of simple, spring-physics based primitives* (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to give each and every problem a specific solution, but rather to give you tools flexible enough to confidently cast your ideas into moving interfaces, or introduce motion to the static.
-
-<br />
+**react-spring** is a *set of simple, spring-physics based primitives* (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to give each and every problem a specific solution, but rather to give you tools flexible enough to confidently cast your ideas into moving interfaces, or introduce motion to the static.
 
 [![Build Status](https://travis-ci.org/drcmda/react-spring.svg?branch=master)](https://travis-ci.org/drcmda/react-spring) [![npm version](https://badge.fury.io/js/react-spring.svg)](https://badge.fury.io/js/react-spring) [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/react-spring) <span class="badge-patreon"><a href="https://www.patreon.com/0xca0a" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-yellow.svg" alt="Patreon donate button" /></a></span> [![Backers on Open Collective](https://opencollective.com/react-spring/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/react-spring/sponsors/badge.svg)](#sponsors)
 
@@ -36,7 +23,7 @@ Render-props: **[react-spring.surge.sh](https://react-spring.surge.sh/)**
 The most basic principle you will be working with is called a `spring`. A spring *does not have a curve, it does not have a duration, it is physics based*! Think of a weight attached to a spring:
 
 <p align="middle">
-  <img width="300" src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
+  <img width="400" src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
 </p>
 
 Let the weight loose and it rushes down, coming to rest when the force is overcome. Yank the spring up and it will expend its energy and move up according to its momentum. Time based animation on the other hand would have it drop down in an arbitrary timeframe, say 2 seconds. Pull up mid-air and it would stop naively, then move back 2 seconds again. No matter which curve you choose, it will never look natural.
