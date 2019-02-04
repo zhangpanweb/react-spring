@@ -54,7 +54,7 @@ This is how you create a script:
 
 ```jsx
 const props = useSpring({ 
-  to: async next => {
+  to: async (next, cancel) => {
     await next({ opacity: 1, color: '#ffaaee' })
     await next({ opacity: 0, color: 'rgb(14,26,19)' })
   },

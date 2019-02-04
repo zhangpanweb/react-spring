@@ -14,37 +14,54 @@ import examples from '../examples/components/examples-hooks'
 import { useTransition, animated } from 'react-spring'
 ```
 
-useSprings manages multiple springs. Use it whenever you have an arry of values that you want to animate (static lists, etc). It behaves exactly like [useSpring](/useSpring) with the distinction that you supply a count as the first argument, while the spring config is given for each item, either functionally, or as an array. 
-
-### Either: overwrite values to change the animation
-
-If you re-render the component with changed props, the animation will update.
+The useTransition hook is similar to Reacts TransitionGroup, after feeding it your items, keys (which can be `null` if items are self descriptive, for instance an array of strings, etc), and lifecycle-configs, it takes over and manages them. When you add or remove items (by overwriting the config), it will animate these actions.
 
 ```jsx
-const springs = useSprings(items.length, items.map(item => ({ opacity: item.opacity }))
-```
-
-### Or: pass a function that returns values, and update using "set"
-
-You will get a `set(Values)` function back, use it to update the animation. This will not cause the component to render, which can be generally more performant. It also prevents configs from being re-created on every render. Handling updates like this is extremely useful for fast-occurring updates, like event streams, mousemoves, etc.
-
-```jsx
-const [springs, set] = useSprings(items.length, index => ({ opacity: items[index].opacity }))
-// ...
-set(index => ({ opacity: items[index].opacity }))
-```
-
-### Finally: distribute animated props among the view
-
-The return value is an array containing animated props.
-
-```jsx
-return springs.map(item => <animated.div style={props} />)
+const transitions = useTransition(items, item => item.id, {
+  from: { opacity: 0 },
+  enter: { opacity: 1 },
+  leave: { opacity: 0 },
+})
+return transitions.map(({ item, key, props }) => (
+  <animated.div key={key} style={props}>
+    {item}
+  </animated.div>
+))
 ```
 
 ## Properties
 
 All properties of the [shared-api](/api) apply.
+
+| Property | Type | Description |
+| -------- | ---- | -------- | ------- | ----------- |
+| initial  | obj/fn | Initial (first time) base values, optional (can be null) |
+| from     | obj/fn | Base values, optional |
+| enter    | obj/fn/array(obj) | Styles apply for entering elements |
+| update   | obj/fn/array(obj) | Styles apply for updating elements (you can update the hook itself with new values) |
+| leave    | obj/fn/array(obj) | Styles apply for leaving elements |
+| trail    | number | Delay in ms before the animation starts, adds up for each enter/update and leave |
+| unique   | bool/fn | If this is true, items going in and out with the same key will be re-used |
+| reset    | bool/fn | Used in combination with "unique" and makes entering items start from scratch |
+
+## Additional notes
+
+The initial/from/enter/update/leave lifecycles can be functional, in that case you have access to the item they're referring to. You can also return a function or an array to either create a scripted or arrayed multi-stage transition.
+
+```jsx
+useTransition(items, null, {
+  enter: item => [
+    { opacity: item.opacity, height: item.height },
+    { life: '100%' },
+  ],
+  leave: item => async (next, cancel) => {
+    await next({ life: '0%' })
+    await next({ opacity: 0 })
+    await next({ height: 0 })
+  },
+  from: { life: '0%', opacity: 0, height: 0 },
+})
+```
 
 ## Demos
 
