@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef } from 'react'
 import { useSpring, animated } from 'react-spring'
 import './styles.css'
 
@@ -11,21 +11,15 @@ const trans = (x, y, s) =>
   `perspective(600px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`
 
 export default function Card() {
-  const rrr = useRef(null)
   const ref = useRef(null)
   const [props, set] = useSpring(() => ({
     xys: [0, 0, 1],
     config: { mass: 5, tension: 350, friction: 40 },
   }))
 
-  useEffect(() => {
-    console.log(rrr)
-  }, [])
-
   return (
     <div className="card-main" ref={ref}>
       <animated.div
-        ref={rrr}
         className="card"
         style={{ transform: props.xys.interpolate(trans) }}
         onMouseLeave={() => set({ xys: [0, 0, 1] })}

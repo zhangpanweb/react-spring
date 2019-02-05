@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import AnimatedProps from './AnimatedProps'
 import { handleRef, is } from '../shared/helpers'
-import { applyAnimatedValues } from './Globals'
+import { applyAnimatedValues, animatedApi } from './Globals'
 
 export default function createAnimatedComponent(Component) {
   const AnimatedComponent = forwardRef((props, ref) => {
@@ -17,12 +17,6 @@ export default function createAnimatedComponent(Component) {
     const mounted = useRef(true)
     const propsAnimated = useRef()
     const node = useRef()
-
-    const setNativeProps = useCallback(props => {
-      const didUpdate = ApplyAnimatedValues(node.current, props)
-      if (!didUpdate) mounted.current && forceUpdate()
-    }, [])
-
     const attachProps = useCallback((props, state) => {
       const oldPropsAnimated = propsAnimated.current
       const callback = () => {
@@ -46,7 +40,7 @@ export default function createAnimatedComponent(Component) {
       []
     )
 
-    useImperativeHandle(ref, () => ({ setNativeProps }))
+    useImperativeHandle(ref, () => animatedApi(node, mounted, forceUpdate))
     attachProps(props)
 
     const {
@@ -63,15 +57,3 @@ export default function createAnimatedComponent(Component) {
   })
   return AnimatedComponent
 }
-
-/*
-shouldComponentUpdate(props) {
-      const { style, ...nextProps } = props
-      const { style: currentStyle, ...currentProps } = this.props
-      if (!is.equ(currentProps, nextProps) || !is.equ(currentStyle, style)) {
-        this.attachProps(props)
-        return true
-      }
-      return false
-    }
-    */

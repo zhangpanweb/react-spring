@@ -25,6 +25,13 @@ Globals.injectApplyAnimatedValues(
 Globals.injectCreateAnimatedStyle(
   styles => new AnimatedStyle(StyleSheet.flatten(styles))
 )
+Globals.injectAnimatedApi((node, mounted, forceUpdate) => ({
+  setNativeProps: props => {
+    const didUpdate = ApplyAnimatedValues(node.current, props)
+    if (!didUpdate) mounted.current && forceUpdate()
+  },
+  getNode: () => node.current,
+}))
 
 export {
   config,

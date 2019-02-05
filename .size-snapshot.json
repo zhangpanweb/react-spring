@@ -38,9 +38,9 @@
     "gzipped": 11641
   },
   "dist/native.js": {
-    "bundled": 69233,
-    "minified": 31414,
-    "gzipped": 10138,
+    "bundled": 68984,
+    "minified": 31443,
+    "gzipped": 10149,
     "treeshaked": {
       "rollup": {
         "code": 9460,
@@ -80,16 +80,16 @@
     }
   },
   "dist/hooks.js": {
-    "bundled": 71877,
-    "minified": 33360,
-    "gzipped": 11190,
+    "bundled": 71628,
+    "minified": 33389,
+    "gzipped": 11200,
     "treeshaked": {
       "rollup": {
-        "code": 12777,
+        "code": 12806,
         "import_statements": 362
       },
       "webpack": {
-        "code": 14031
+        "code": 14060
       }
     }
   },
@@ -141,23 +141,23 @@
     }
   },
   "dist/renderprops-addons.js": {
-    "bundled": 9443,
-    "minified": 5181,
-    "gzipped": 1800,
+    "bundled": 9455,
+    "minified": 5193,
+    "gzipped": 1807,
     "treeshaked": {
       "rollup": {
-        "code": 4695,
-        "import_statements": 279
+        "code": 4707,
+        "import_statements": 291
       },
       "webpack": {
-        "code": 5869
+        "code": 5881
       }
     }
   },
   "dist/renderprops-addons.umd.js": {
-    "bundled": 11277,
-    "minified": 5334,
-    "gzipped": 1999
+    "bundled": 11301,
+    "minified": 5358,
+    "gzipped": 2008
   },
   "dist/renderprops-native.js": {
     "bundled": 71914,
