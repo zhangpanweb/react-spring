@@ -6,7 +6,9 @@
 <br />
 <br />
 
-**react-spring** is a *set of simple, spring-physics based primitives* (as in building blocks) that should cover most of your UI related animation needs once plain CSS can't cope any longer. Forget easings, durations, timeouts and so on as you fluidly move data from one state to another. This isn't meant to give each and every problem a specific solution, but rather to give you tools flexible enough to confidently cast your ideas into moving interfaces, or introduce motion to the static.
+**react-spring** is a spring-physics based animation library that should cover most of your UI related animation needs. It gives you tools flexible enough to confidently cast your ideas into moving interfaces.
+
+This library represents a modern approach to animation. It is very much inspired by Christopher Chedeau's [animated](https://github.com/animatedjs/animated) and Cheng Lou's [react-motion](https://github.com/chenglou/react-motion). It inherits animated's powerful interpolations and performance, as well as react-motion's ease of use. But while animated is mostly imperative and react-motion mostly declarative, react-spring bridges both. Hooks allow us to express intent linearly, you will be surprised how easy static data is cast into motion with small, explicit utility functions that don't necessarily affect how you form your views.
 
 [![Build Status](https://travis-ci.org/drcmda/react-spring.svg?branch=master)](https://travis-ci.org/drcmda/react-spring) [![npm version](https://badge.fury.io/js/react-spring.svg)](https://badge.fury.io/js/react-spring) [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/react-spring) <span class="badge-patreon"><a href="https://www.patreon.com/0xca0a" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-yellow.svg" alt="Patreon donate button" /></a></span> [![Backers on Open Collective](https://opencollective.com/react-spring/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/react-spring/sponsors/badge.svg)](#sponsors)
 
@@ -22,19 +24,17 @@ Render-props: **[react-spring.surge.sh](https://react-spring.surge.sh/)**
 
 ---
 
-### Why springs and not durations
+## Why springs and not durations
 
-The most basic principle you will be working with is called a `spring`. A spring *does not have a curve, it does not have a duration, it is physics based*! Think of a weight attached to a spring:
+The principle you will be working with is called a `spring`, it *does not have a defined curve or a set duration*. In that it differs greatly from the animation you are probably used to. We think of animation in terms of time and curves, but that in itself causes most of the struggle we face when trying to make elements on the screen move naturally, because nothing in the real world moves like that.
 
 <p align="middle">
-  <img width="400" src="https://s3-eu-west-1.amazonaws.com/functionsandgraphs/animation+of+a+spring+vibrating+up+and+down.gif" />
+  <img height="250" src="http://media.virbcdn.com/cdn_images/resize_1024x1365/ee/f447741155b1cbc0-ny3Qc.gif" />
 </p>
 
-Let the weight loose and it rushes down, coming to rest when the force is overcome. Yank the spring up and it will expend its energy and move up according to its momentum. Time based animation on the other hand would have it drop down in an arbitrary timeframe, say 2 seconds. Pull up mid-air and it would stop naively, then move back 2 seconds again. No matter which curve you choose, it will never look natural.
+We are so used to time-based animation that we believe that struggle is normal, dealing with arbitrary curves, easings, time waterfalls, not to mention getting this all in sync. As Andy Matuschak (ex Apple UI-Kit developer) [expressed it once](https://twitter.com/andy_matuschak/status/566736015188963328): *Animation APIs parameterized by duration and curve are fundamentally opposed to continuous, fluid interactivity*.
 
-*Durations and easings are the number one reason UI animation is hard*, and usually looks bad. We are so used to it that we don't question it any longer. We think it is just the way it is when we have to deal with curves, easings, time waterfalls, not to mention getting this all in sync.
-
-Springs change that, they make animation easy and approachable, everything you do with them is fluid by default. Watch the next couple of minutes of [this video](https://www.youtube.com/embed/1tavDv5hXpo?controls=0&amp;start=370) in which Cheng Lou (the author of react-motion) explains it perfectly.
+Springs change that, animation becomes easy and approachable, everything you do looks and feels natural by default. For a detailed explanation watch [this video](https://www.youtube.com/embed/1tavDv5hXpo?controls=0&amp;start=370).
 
 ### What others say
 
