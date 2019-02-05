@@ -1,5 +1,5 @@
 import { Ref, PureComponent } from 'react'
-import { SpringConfig } from './universal'
+import { SpringConfig } from './renderprops-universal'
 
 interface ParallaxProps {
   pages: number

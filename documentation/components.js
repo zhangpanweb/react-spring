@@ -1,49 +1,9 @@
 import React, { useState, useContext, createElement } from 'react'
-import ReactDOM from 'react-dom'
-import styled, { createGlobalStyle } from 'styled-components'
+import styled from 'styled-components'
 import { UnControlled } from 'react-codemirror2'
 import { useSpring, animated, config } from '../src/targets/web'
 
 const Context = React.createContext()
-
-const dom = document.createElement('div')
-document.body.appendChild(dom)
-
-const Header = styled('div')`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: hotpink;
-  z-index: 10000000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-`
-
-const Global = createGlobalStyle`
-  #root > div > a:first-of-type {
-    z-index: 20000000;
-  }
-  #root > div > div:nth-of-type(3) {
-    position: relative;
-    top: 100vh;
-  }
-`
-
-function Splash(props) {
-  return ReactDOM.createPortal(
-    <>
-      <Global />
-      <Header>
-        <h1>react-spring</h1>
-      </Header>
-    </>,
-    dom
-  )
-}
 
 function RewindSpringProvider({ children }) {
   const [flip, set] = useState(false)

@@ -3,8 +3,8 @@ import {
   ComponentPropsWithRef,
   ReactType,
 } from 'react'
-import { animated } from './universal'
-export * from './universal'
+import { animated } from './renderprops-universal'
+export * from './renderprops-universal'
 
 import * as konva from 'react-konva'
 
