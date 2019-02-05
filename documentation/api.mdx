@@ -65,3 +65,20 @@ All primitives inherit the following properties (though some of them may bring t
 | onStart     | fn | Callback when the animation starts to animate |
 | onRest     | fn | Callback when the animation comes to a still-stand |
 | onFrame     | fn | Frame by frame callback, first argument passed is the animated value |
+
+## Interpolations
+
+`value.interpolate` either takes an object of the following shape:
+
+| Value            | default  | Description |
+| ---------------- | -------- | ----------- |
+| extrapolateLeft  | extend   | Left extrapolate. Can be: identity/clamp/extend
+| extrapolateRight | extend   | Right extrapolate. Can be: identity/clamp/extend
+| extrapolate      | extend   | Shortcut to set left and right-extrapolate
+| range            | [0,1]    | Array of input ranges
+| output           | undefined | Array of mapped output ranges
+| map              | undefined | Value filter applied to input value
+
+A range shortcut: `value.interpolate([...inputRange], [...outputRange])`
+
+Or a function: `value.interpolate(v => ...)`

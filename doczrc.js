@@ -113,10 +113,10 @@ export default {
           font-family: "Source Code Pro",monospace;
           font-size: 14px;
         }
-        a, a:visited, a:active {
-          color: rgb(31, 182, 255);
-          text-decoration: none;
-          cursor: pointer;
+        #root > div > div:nth-of-type(3) a, #root > div > div:nth-of-type(3) a:visited, #root > div > div:nth-of-type(3) a:active {
+          color: rgb(31, 182, 255)!important;
+          text-decoration: none!important;
+          cursor: pointer!important;
         }
       </style>
       `,

@@ -157,7 +157,7 @@ return <AnimatedDonut percent={props.value} />`}/>
   </div>
 </RewindSpringProvider>
 
-## Input-data
+## Up-front interpolation
 
 Springs take pretty much everything, they don't just handle numbers.
 
@@ -173,9 +173,27 @@ Springs take pretty much everything, they don't just handle numbers.
 * non-animatable string values (visibility, pointerEvents, etc)
 * scrollTop/scrollLeft
 
-## Interpolation
+```jsx
+const props = useSpring({
+  vector: [0, 10, 30],
+  display: 'block',
+  padding: 20, 
+  background:
+    'linear-gradient(to right, #009fff, #ec2f4b)', 
+  transform: 
+    'translate3d(0px,0,0) scale(1) rotateX(0deg)', 
+  boxShadow: '0px 10px 20px 0px rgba(0,0,0,0.4)', 
+  borderBottom: '10px solid #2D3747', 
+  shape: 'M20,20 L20,380 L380,380 L380,20 L20,20 Z', 
+  textShadow: '0px 5px 15px rgba(255,255,255,0.5)',
+})
+```
 
-In cases where you need to clamp or extrapolate, each animated value can `interpolate`, which is a powerful tool to have. The interpolate function either takes a function or a an object which forms a range. Interpolations can also form chains which allows you to route one calculation into another or reuse them.
+## View interpolation
+
+In cases where you need to clamp or extrapolate, each animated value can `interpolate` inside the view, which is a powerful tool to have. The interpolate function either takes a function or a an object which forms a range. Interpolations can also form chains which allows you to route one calculation into another or reuse them. [Look into the shared-api](/api) for a object description.
+
+You may wonder why you wouldn't interpolate always inside the spring. View interpolation can be a little faster, and it takes up less space.
 
 ```jsx
 import { useSpring, animated, interpolate } from 'react-spring'
