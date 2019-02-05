@@ -152,6 +152,12 @@ return transitions.map(({ item, props, key }) => (
     tags: ['useTransition'],
   },
   {
+    name: 'keyframes',
+    title: 'Emulating css keyframes',
+    link: 'https://codesandbox.io/embed/88lmnl6w88',
+    tags: ['useSpring'],
+  },
+  {
     name: 'list-reordering',
     title: 'List-reordering',
     link: 'https://codesandbox.io/embed/1wqpz5mzqj',

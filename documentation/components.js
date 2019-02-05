@@ -26,7 +26,7 @@ function RewindSpring({ children, style }) {
     <div
       style={{
         overflow: 'hidden',
-        background: '#f4f6f9',
+        background: '#f0f0f0',
         color: 'rgb(45, 55, 71)',
         ...style,
       }}>
