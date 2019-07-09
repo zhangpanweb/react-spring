@@ -4,6 +4,7 @@ import { to } from './interpolate'
 import { Animated } from './Animated'
 import { deprecateInterpolate } from 'shared/deprecations'
 import * as G from 'shared/globals'
+import invariant from 'tiny-invariant'
 
 /** An animated number or a native attribute value */
 export class AnimatedValue<T = unknown> extends Animated
@@ -29,6 +30,7 @@ export class AnimatedValue<T = unknown> extends Animated
   }
 
   getValue() {
+    invariant(!this.dead)
     return this.value
   }
 

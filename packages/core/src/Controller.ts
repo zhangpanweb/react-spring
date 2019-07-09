@@ -586,6 +586,7 @@ export class Controller<State extends Indexable = any> {
             const prev = animated
             animated = input.to({ output }) as any
             moveChildren(prev, animated)
+            prev.dead = true
           } catch (err) {
             console.warn(
               'Failed to interpolate string from "%s" to "%s"',
@@ -613,6 +614,7 @@ export class Controller<State extends Indexable = any> {
               const prev = animated
               animated = createAnimated(fromValue as any[])
               moveChildren(prev, animated)
+              prev.dead = true
             }
           } else {
             if (animated instanceof AnimatedValue) {
@@ -622,6 +624,7 @@ export class Controller<State extends Indexable = any> {
               const prev = animated
               animated = new AnimatedValue(fromValue)
               moveChildren(prev, animated)
+              prev.dead = true
             }
           }
           if (G.skipAnimation) {

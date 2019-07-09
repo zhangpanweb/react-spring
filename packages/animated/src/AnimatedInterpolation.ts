@@ -14,6 +14,7 @@ import { deprecateInterpolate } from 'shared/deprecations'
 import { Animated } from './Animated'
 import { to } from './interpolate'
 import { toPayload, addChild, removeChild } from './AnimatedObject'
+import invariant from 'tiny-invariant'
 
 export class AnimatedInterpolation<
   In extends Interpolatable = Interpolatable,
@@ -29,6 +30,7 @@ export class AnimatedInterpolation<
   }
 
   getValue(animated?: boolean): Out {
+    invariant(!this.dead)
     const args = is.arr(this.source)
       ? this.source.map(node => node.getValue(animated))
       : toArray(this.source.getValue(animated))

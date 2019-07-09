@@ -8,6 +8,7 @@ export abstract class Animated {
   protected [animatedTag] = true
   protected children = new Set<Animated>()
   protected payload?: Set<AnimatedValue>
+  dead = false
 
   /** Returns all values contained by this node. Pass true for only the animated values. */
   abstract getValue(animated?: boolean): any

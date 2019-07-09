@@ -14,6 +14,7 @@ export class AnimatedArray extends AnimatedObject
   }
 
   getValue(animated?: boolean) {
+    invariant(!this.dead)
     return this.source.map(node => node.getValue(animated))
   }
 
