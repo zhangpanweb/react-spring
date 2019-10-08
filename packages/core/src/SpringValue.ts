@@ -145,12 +145,7 @@ export class SpringValue<T = any> extends FrameValue<T> {
       const elapsed = (node.elapsedTime += dt)
       const from = anim.fromValues[i]
 
-      const v0 =
-        node.v0 != null
-          ? node.v0
-          : (node.v0 = is.arr(config.velocity)
-              ? config.velocity[i]
-              : config.velocity)
+      const v0 = is.arr(config.velocity) ? config.velocity[i] : config.velocity
 
       let position = node.lastPosition
       let velocity: number
@@ -183,8 +178,6 @@ export class SpringValue<T = any> extends FrameValue<T> {
 
       // Spring easing
       else {
-        velocity = node.lastVelocity == null ? v0 : node.lastVelocity
-
         /** The smallest distance from a value before being treated like said value. */
         const precision =
           config.precision ||
@@ -193,48 +186,66 @@ export class SpringValue<T = any> extends FrameValue<T> {
         /** The velocity at which movement is essentially none */
         const restVelocity = config.restVelocity || precision
 
+        /** When `true`, the velocity is being deflected or clamped */
+        let isBouncing = false
+
+        const t = node.elapsedTime - node.resetTime
+
+        const zeta = config.zeta
+        const w0 = config.w0
+        const x_0 = to - (node.resetFrom !== void 0 ? node.resetFrom : from)
+        const v_0 = node.resetVelocity !== void 0 ? node.resetVelocity : v0
+
+        if (zeta < 1) {
+          const envelope = Math.exp(-zeta * w0 * t)
+          const w1 = config.w1
+
+          position =
+            to -
+            envelope *
+              (((-v_0 + zeta * w0 * x_0) / w1) * Math.sin(w1 * t) +
+                x_0 * Math.cos(w1 * t))
+
+          velocity =
+            zeta *
+              w0 *
+              envelope *
+              ((Math.sin(w1 * t) * (-v_0 + zeta * w0 * x_0)) / w1 +
+                x_0 * Math.cos(w1 * t)) -
+            envelope *
+              (Math.cos(w1 * t) * (-v_0 + zeta * w0 * x_0) -
+                w1 * x_0 * Math.sin(w1 * t))
+        } else {
+          const envelope = Math.exp(-w0 * t)
+          position = to - envelope * (x_0 + (-v_0 + w0 * x_0) * t)
+          velocity = envelope * (-v_0 * (t * w0 - 1) + t * x_0 * (w0 * w0))
+        }
+
         // Bouncing is opt-in (not to be confused with overshooting)
         const bounceFactor = config.clamp ? 0 : config.bounce!
         const canBounce = !is.und(bounceFactor)
 
         /** When `true`, the value is increasing over time */
-        const isGrowing = from == to ? node.v0 > 0 : from < to
+        const isGrowing = from == to ? velocity > 0 : from < to
 
         /** When `true`, the velocity is considered moving */
-        let isMoving!: boolean
+        const isMoving = Math.abs(velocity) > restVelocity
 
-        /** When `true`, the velocity is being deflected or clamped */
-        let isBouncing = false
+        if (!isMoving) {
+          finished = Math.abs(to - position) <= precision
+        }
 
-        //const step = 0.05 / config.w0
-        const step = 1 // 1ms
-        const numSteps = Math.ceil(dt / step)
-        for (let n = 0; n < numSteps; ++n) {
-          isMoving = Math.abs(velocity) > restVelocity
+        if (canBounce) {
+          isBouncing = position == to || position > to == isGrowing
 
-          if (!isMoving) {
-            finished = Math.abs(to - position) <= precision
-            if (finished) {
-              break
-            }
+          // Invert the velocity with a magnitude, or clamp it.
+          if (isBouncing) {
+            velocity = -velocity * bounceFactor
+            position = to
+            node.resetFrom = position
+            node.resetVelocity = velocity
+            node.resetTime = node.elapsedTime
           }
-
-          if (canBounce) {
-            isBouncing = position == to || position > to == isGrowing
-
-            // Invert the velocity with a magnitude, or clamp it.
-            if (isBouncing) {
-              velocity = -velocity * bounceFactor
-              position = to
-            }
-          }
-
-          const springForce = -config.tension * 0.000001 * (position - to)
-          const dampingForce = -config.friction * 0.001 * velocity
-          const acceleration = (springForce + dampingForce) / config.mass // pt/ms^2
-
-          velocity = velocity + acceleration * step // pt/ms
-          position = position + velocity * step
         }
       }
 
