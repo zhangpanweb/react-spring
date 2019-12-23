@@ -52,6 +52,29 @@ describe('SpringValue', () => {
     expect(frames).not.toEqual([])
   })
 
+  fit('can interrupt a decay animation with a spring animation', async () => {
+    const spring = new SpringValue(0)
+    spring.start({
+      // FIXME: Decay animation never starts when "to" prop is undefined
+      // to: 1,
+      config: {
+        decay: true,
+        velocity: 0.01,
+      },
+    })
+    await advanceUntilValue(spring, 0.5)
+    spring.start({
+      to: -1,
+      config: {
+        frequency: 1,
+        velocity: spring.velocity,
+      },
+    })
+    await advanceUntilIdle()
+    // expect(getFrames(spring)).toMatchSnapshot()
+    console.log(getFrames(spring))
+  })
+
   describeProps()
   describeMethods()
 
