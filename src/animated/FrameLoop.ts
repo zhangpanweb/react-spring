@@ -6,12 +6,12 @@ let active = false
 const controllers = new Set()
 
 const update = () => {
-  if (!active) return false
-  let time = now()
-  for (let controller of controllers) {
-    let isActive = false
+  if (!active) return false // 如果不是活跃状态，直接停止
+  let time = now() // 获取时间戳
+  for (let controller of controllers) { // 遍历 controllers
+    let isActive = false // 初始状态非活跃
 
-    for (
+    for ( // 遍历 controller.configs
       let configIdx = 0;
       configIdx < controller.configs.length;
       configIdx++
@@ -22,6 +22,7 @@ const update = () => {
         let animation = config.animatedValues[valIdx]
 
         // If an animation is done, skip, until all of them conclude
+        // 如果这个 animation 已经完成了，继续下一个
         if (animation.done) continue
 
         let from = config.fromValues[valIdx]
@@ -34,6 +35,7 @@ const update = () => {
         if (isAnimated) to = to.getValue()
 
         // Conclude animation if it's either immediate, or from-values match end-state
+        // 如果是 immediate，则直接跳到 to 的值
         if (config.immediate) {
           animation.setValue(to)
           animation.done = true
@@ -41,20 +43,21 @@ const update = () => {
         }
 
         // Break animation when string values are involved
+        // 如果 from 或者 to 是 string，也直接到 to 值
         if (typeof from === 'string' || typeof to === 'string') {
           animation.setValue(to)
           animation.done = true
           continue
         }
 
-        if (config.duration !== void 0) {
+        if (config.duration !== void 0) { // 如果 duration 存在
           /** Duration easing */
-          position =
+          position = // 获取应该到的 position
             from +
             config.easing((time - animation.startTime) / config.duration) *
               (to - from)
           endOfAnimation = time >= animation.startTime + config.duration
-        } else if (config.decay) {
+        } else if (config.decay) { // 如果存在 decay
           /** Decay easing */
           position =
             from +
@@ -71,6 +74,7 @@ const update = () => {
               : config.initialVelocity
 
           // If we lost a lot of frames just jump to the end.
+          // 如果错过了很多帧，直接跳到最后
           if (time > lastTime + 64) lastTime = time
           // http://gafferongames.com/game-physics/fix-your-timestep/
           let numSteps = Math.floor(time - lastTime)
@@ -83,7 +87,7 @@ const update = () => {
           }
 
           // Conditions for stopping the spring animation
-          let isOvershooting =
+          let isOvershooting = // 是否已经过了结束点
             config.clamp && config.tension !== 0
               ? from < to
                 ? position > to
@@ -137,9 +141,11 @@ const update = () => {
 }
 
 const start = (controller: Controller) => {
+  // 存下 controller
   if (!controllers.has(controller)) controllers.add(controller)
+  // 如果不处于活跃状态
   if (!active) {
-    active = true
+    active = true // 设置为 活跃状态
     if (manualFrameloop) requestFrame(manualFrameloop)
     else requestFrame(update)
   }

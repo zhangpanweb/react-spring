@@ -3,7 +3,7 @@ import { InterpolationConfig } from '../types/interpolation'
 import AnimatedStyle from './AnimatedStyle'
 
 type ApplyPropsFunction = (node?: any, props?: any) => undefined | false
-type TransformFunction = (style: any) => any
+type TransformFunction = (style: any) => any // 空的 TransformFunction 方法
 export let applyAnimatedValues: {
   fn: ApplyPropsFunction
   transform: TransformFunction
@@ -11,7 +11,7 @@ export let applyAnimatedValues: {
 export function injectApplyAnimatedValues(
   fn: ApplyPropsFunction,
   transform: TransformFunction
-) {
+) { // 注入 applyAnimatedValues
   applyAnimatedValues = { fn, transform }
 }
 
@@ -20,6 +20,7 @@ export function injectColorNames(names: typeof colorNames) {
   colorNames = names
 }
 
+// requestFrame 方法，使用 window.requestAnimationFrame
 export let requestFrame: typeof window.requestAnimationFrame = cb =>
   typeof window !== 'undefined' ? window.requestAnimationFrame(cb) : -1
 export let cancelFrame: typeof window.cancelAnimationFrame = id => {
@@ -64,12 +65,12 @@ export function injectAnimatedApi(fn: typeof animatedApi) {
   animatedApi = fn
 }
 
-export let createAnimatedStyle: (style: any) => AnimatedStyle
+export let createAnimatedStyle: (style: any) => AnimatedStyle // 默认的 createAnimatedStyle 方法，返回的是 AnimatedStyle 类
 export function injectCreateAnimatedStyle(factory: typeof createAnimatedStyle) {
-  createAnimatedStyle = factory
+  createAnimatedStyle = factory // 使用 injectCreateAnimatedStyle 方法注入需要的的 createAnimatedStyle
 }
 
-export let manualFrameloop: any
+export let manualFrameloop: any // 自定义的 frame loop 方法
 export function injectManualFrameloop(callback: any) {
   manualFrameloop = callback
 }

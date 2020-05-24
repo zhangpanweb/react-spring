@@ -71,6 +71,7 @@ export interface SpringValue<
   /**
    * Get the animated value. Automatically invoked when an `AnimatedValue`
    * is assigned to a property of an `animated` element.
+   * 获取 animated 值
    */
   getValue(): Value extends any[] ? ValueType[] : ValueType
 

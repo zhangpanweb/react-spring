@@ -6,6 +6,7 @@ export default class AnimatedStyle<
 > extends AnimatedObject<Payload> {
   constructor(style: Payload = {} as Payload) {
     super()
+    // 如果存在 style.transform，并且 style.transform 不是 Animated 的实例，转化 style
     if (style.transform && !(style.transform instanceof Animated)) {
       style = Globals.applyAnimatedValues.transform(style)
     }

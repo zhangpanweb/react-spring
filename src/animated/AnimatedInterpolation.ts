@@ -19,21 +19,21 @@ export default class AnimatedInterpolation extends AnimatedArray<Animated>
     extrapolate?: ExtrapolateType
   ) {
     super()
-    this.payload =
+    this.payload = // 获取 payload
       parents instanceof AnimatedArray &&
       !(parents instanceof AnimatedInterpolation)
-        ? (parents.getPayload() as Animated[])
-        : Array.isArray(parents)
+        ? (parents.getPayload() as Animated[]) // 如果是 Animated 类值，获取 payload
+        : Array.isArray(parents) // 否则返回 parents array
         ? parents
         : [parents]
-    this.calc = createInterpolator(
+    this.calc = createInterpolator( // 创建 interpolator
       range as number[],
       output!,
       extrapolate
     ) as Interpolator
   }
 
-  public getValue() {
+  public getValue() { // 获取值
     return this.calc(...this.payload.map(value => value.getValue()))
   }
 
@@ -41,7 +41,7 @@ export default class AnimatedInterpolation extends AnimatedArray<Animated>
     range: number[] | InterpolationConfig | Interpolator,
     output?: (number | string)[],
     extrapolate?: ExtrapolateType
-  ) {
+  ) { // 更新配置，也就是创建新的 interpolator
     this.calc = createInterpolator(
       range as number[],
       output!,
@@ -53,7 +53,7 @@ export default class AnimatedInterpolation extends AnimatedArray<Animated>
     range: number[] | InterpolationConfig | ((...args: any[]) => IpValue),
     output?: (number | string)[],
     extrapolate?: ExtrapolateType
-  ): AnimatedInterpolation {
+  ): AnimatedInterpolation { // 返回新的 AnimatedInterpolation
     return new AnimatedInterpolation(
       this,
       range as number[],

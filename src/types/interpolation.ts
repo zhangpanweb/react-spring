@@ -17,6 +17,9 @@ export type InterpolationConfig<
    *
    * @default 'extend'
    */
+  /**
+   * 设置当值低于目标值的做法
+   */
   extrapolateLeft?: ExtrapolateType
 
   /**
@@ -27,6 +30,9 @@ export type InterpolationConfig<
    *  - `identity` sets the value to the interpolation input as soon as it hits the boundary
    *
    * @default 'extend'
+   */
+  /**
+   * 设置当值高于目标值的做法
    */
   extrapolateRight?: ExtrapolateType
 
@@ -60,11 +66,13 @@ export type InterpolationConfig<
 
   /**
    * Transformation to apply to the value before interpolation.
+   * interpolation前作用于值的转化
    */
   map?: (value: number) => number
 
   /**
    * Custom easing to apply in interpolator.
+   * 应用于interpolation的自定义easing函数
    */
   easing?: EasingFunction
 }

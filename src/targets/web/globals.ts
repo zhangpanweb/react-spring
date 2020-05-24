@@ -87,13 +87,16 @@ Globals.injectApplyAnimatedValues(
         instance.nodeName === 'filter' ||
         (instance.parentNode && instance.parentNode.nodeName === 'filter')
 
+      // 更新 scrollTop 和 scrollLeft 属性
       if (scrollTop !== void 0) instance.scrollTop = scrollTop
       if (scrollLeft !== void 0) instance.scrollLeft = scrollLeft
 
       // Set textContent, if children is an animatable value
+      // 如果 children 是 动画值，更新节点 textContent
       if (children !== void 0) instance.textContent = children
 
       // Set styles ...
+      // 遍历设置 style
       for (let styleName in style) {
         if (!style.hasOwnProperty(styleName)) continue
         var isCustomProperty = styleName.indexOf('--') === 0
@@ -102,12 +105,13 @@ Globals.injectApplyAnimatedValues(
           style[styleName],
           isCustomProperty
         )
-        if (styleName === 'float') styleName = 'cssFloat'
-        if (isCustomProperty) instance.style.setProperty(styleName, styleValue)
+        if (styleName === 'float') styleName = 'cssFloat' // 设置 float
+        if (isCustomProperty) instance.style.setProperty(styleName, styleValue) // 更新对应节点的对应样式值
         else instance.style[styleName] = styleValue
       }
 
       // Set attributes ...
+      // 遍历设置 attributes
       for (let name in attributes) {
         // Attributes are written in dash case
         const dashCase = filter

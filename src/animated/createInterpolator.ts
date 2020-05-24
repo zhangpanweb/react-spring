@@ -26,13 +26,13 @@ function createInterpolator(
   output?: (number | string)[],
   extrapolate?: ExtrapolateType
 ) {
-  if (typeof range === 'function') {
+  if (typeof range === 'function') { // 如果 range 是函数，直接用 range
     return range
   }
-  if (Array.isArray(range)) {
+  if (Array.isArray(range)) { // 如果 range 是数组
     return createInterpolator({ range, output: output!, extrapolate })
   }
-  if (Globals.interpolation && typeof range.output[0] === 'string') {
+  if (Globals.interpolation && typeof range.output[0] === 'string') { // 如果有注入的 interpolation ，使用并返回
     return Globals.interpolation(range as InterpolationConfig<string>)
   }
   const config = range as InterpolationConfig<number>
@@ -45,7 +45,7 @@ function createInterpolator(
     config.extrapolateRight || config.extrapolate || 'extend'
   const easing = config.easing || (t => t)
 
-  return (input: number) => {
+  return (input: number) => { // input
     const range = findRange(input, inputRange)
     return interpolate(
       input,
@@ -72,11 +72,11 @@ function interpolate(
   extrapolateRight: ExtrapolateType,
   map?: (x: number) => number
 ) {
-  let result = map ? map(input) : input
+  let result = map ? map(input) : input // 先使用 map 转化 input
   // Extrapolate
-  if (result < inputMin) {
-    if (extrapolateLeft === 'identity') return result
-    else if (extrapolateLeft === 'clamp') result = inputMin
+  if (result < inputMin) { // 转化后的值小于 inputMin
+    if (extrapolateLeft === 'identity') return result // 如果是 identity，直接返回
+    else if (extrapolateLeft === 'clamp') result = inputMin // 是 clamp，result 设置为 inputMin
   }
   if (result > inputMax) {
     if (extrapolateRight === 'identity') return result
@@ -89,15 +89,16 @@ function interpolate(
   else if (inputMax === Infinity) result = result - inputMin
   else result = (result - inputMin) / (inputMax - inputMin)
   // Easing
-  result = easing(result)
+  result = easing(result) // 对 result 使用 easing
   // Output Range
   if (outputMin === -Infinity) result = -result
   else if (outputMax === Infinity) result = result + outputMin
   else result = result * (outputMax - outputMin) + outputMin
-  return result
+  return result // 返回值
 }
 
 function findRange(input: number, inputRange: number[]) {
+  // 获取 inputRange 中离 input 最近的一个值的位置
   for (var i = 1; i < inputRange.length - 1; ++i)
     if (inputRange[i] >= input) break
   return i - 1

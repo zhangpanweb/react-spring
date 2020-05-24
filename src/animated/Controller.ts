@@ -50,16 +50,17 @@ class Controller<P extends any = {}> {
   update(args?: P) {
     //this._id = n + this.id
 
-    if (!args) return this
+    if (!args) return this // 没有参数直接返回 controller
     // Extract delay and the to-prop from props
     const { delay = 0, to, ...props } = interpolateTo(args) as any
     if (is.arr(to) || is.fun(to)) {
       // If config is either a function or an array queue it up as is
+      // 如果 to 是函数或者是数组，把它推入 queue 中
       this.queue.push({ ...props, delay, to })
     } else if (to) {
       // Otherwise go through each key since it could be delayed individually
       let ops: any = {}
-      Object.entries(to).forEach(([k, v]) => {
+      Object.entries(to).forEach(([k, v]) => { // 遍历 to ，k 是 key ，v 是 value
         // Fetch delay and create an entry, consisting of the to-props, the delay, and basic props
         const entry = { to: { [k]: v }, delay: callProp(delay, k), ...props }
         const previous = ops[entry.delay] && ops[entry.delay].to
@@ -72,6 +73,7 @@ class Controller<P extends any = {}> {
       this.queue = Object.values(ops)
     }
     // Sort queue, so that async calls go last
+    // 排序queue
     this.queue = this.queue.sort((a, b) => a.delay - b.delay)
 
     // Diff the reduced props immediately (they'll contain the from-prop and some config)
@@ -83,10 +85,12 @@ class Controller<P extends any = {}> {
    *  This function either executes a queue, if present, or starts the frameloop, which animates */
   start(onEnd?: FinishedCallback) {
     // If a queue is present we must excecute it
+    // queue 有值
     if (this.queue.length) {
       this.idle = false
 
       // Updates can interrupt trailing queues, in that case we just merge values
+      // 如果还有 queue，合并属性
       if (this.localQueue) {
         this.localQueue.forEach(({ from = {}, to = {} }) => {
           if (is.obj(from)) this.merged = { ...from, ...this.merged }
@@ -101,32 +105,38 @@ class Controller<P extends any = {}> {
       this.queue = []
 
       // Go through each entry and execute it
+      // 遍历 queue，执行
       queue.forEach(({ delay, ...props }, index) => {
         const cb: FinishedCallback = finished => {
+          // 如果是最后一个，guid 不过期，已完成
           if (index === queue.length - 1 && local === this.guid && finished) {
-            this.idle = true
-            if (this.props.onRest) this.props.onRest(this.merged)
+            this.idle = true // 已 idle
+            if (this.props.onRest) this.props.onRest(this.merged) // 有 onRest，执行
           }
+          // 有 onEnd，执行
           if (onEnd) onEnd()
         }
 
         // Entries can be delayed, ansyc or immediate
         let async = is.arr(props.to) || is.fun(props.to)
-        if (delay) {
+        if (delay) { // 如果有 delay，则 delay 时间之后执行
           setTimeout(() => {
-            if (local === this.guid) {
-              if (async) this.runAsync(props, cb)
-              else this.diff(props).start(cb)
+            if (local === this.guid) { // 如果 local 与 guid 等，说明是一致的
+              if (async) this.runAsync(props, cb) // 如果是 async 的，执行 runAsync
+              else this.diff(props).start(cb) // 同步的，diff props 然后开始
             }
           }, delay)
-        } else if (async) this.runAsync(props, cb)
-        else this.diff(props).start(cb)
+        } else if (async) this.runAsync(props, cb) // 如果没有 delay 但是 async，执行 runAsync
+        else this.diff(props).start(cb) // 如果没有 delay 但是不 async，diff props 然后开始
       })
     }
     // Otherwise we kick of the frameloop
     else {
+      // 如果 onEnd 回调是方法，推到 listeners 中
       if (is.fun(onEnd)) this.listeners.push(onEnd)
+      // 如果有 onStart 执行 onStart
       if (this.props.onStart) this.props.onStart()
+      // 开始
       start(this)
     }
     return this
@@ -189,6 +199,7 @@ class Controller<P extends any = {}> {
   }
 
   diff(props: any) {
+    // 合并 props
     this.props = { ...this.props, ...props }
     let {
       from = {},
@@ -206,6 +217,7 @@ class Controller<P extends any = {}> {
     }
 
     // This will collect all props that were ever set, reset merged props when necessary
+    // 合并数据
     this.merged = { ...from, ...this.merged, ...to }
 
     this.hasChanged = false
@@ -237,66 +249,67 @@ class Controller<P extends any = {}> {
           toValues = toArray(target ? toValue.getPayload() : toValue),
           animatedValues
 
-        let newValue = value
+        let newValue = value // 新的值
         if (isInterpolation)
-          newValue = interp({
+          newValue = interp({ // 如果新值是 interpolation，interp 值
             range: [0, 1],
             output: [value as string, value as string],
           })(1)
-        let currentValue = interpolation && interpolation.getValue()
+        let currentValue = interpolation && interpolation.getValue() // 获取现在的值
 
         // Change detection flags
-        const isFirst = is.und(parent)
-        const isActive =
+        const isFirst = is.und(parent) // 如果 parent 不存在，说明是第一次进来
+        const isActive = // 不是第一次，并且 animatedValues 里面还有未完成的，说明还属于活跃状态
           !isFirst && entry.animatedValues.some((v: AnimatedValue) => !v.done)
-        const currentValueDiffersFromGoal = !is.equ(newValue, currentValue)
-        const hasNewGoal = !is.equ(newValue, entry.previous)
-        const hasNewConfig = !is.equ(toConfig, entry.config)
+        const currentValueDiffersFromGoal = !is.equ(newValue, currentValue) // 比较新值和现有值
+        const hasNewGoal = !is.equ(newValue, entry.previous) // 新老值是否等
+        const hasNewConfig = !is.equ(toConfig, entry.config) // 新老配置是否相等
 
         // Change animation props when props indicate a new goal (new value differs from previous one)
         // and current values differ from it. Config changes trigger a new update as well (though probably shouldn't?)
         if (
-          reset ||
-          (hasNewGoal && currentValueDiffersFromGoal) ||
-          hasNewConfig
+          reset || // 如果设置了reset
+          (hasNewGoal && currentValueDiffersFromGoal) || // 有新的目标或者新值和现有值不同
+          hasNewConfig // 有新的配置
         ) {
           // Convert regular values into animated values, ALWAYS re-use if possible
-          if (isNumber || isString)
-            parent = interpolation =
+          if (isNumber || isString) // 如果 number 或者 string
+            parent = interpolation = // 获取 parent 或者构造一个
               entry.parent || new AnimatedValue(fromValue)
-          else if (isArray)
+          else if (isArray) // 是数组
             parent = interpolation =
               entry.parent || new AnimatedValueArray(fromValue)
-          else if (isInterpolation) {
+          else if (isInterpolation) { // 是 interpolation
             let prev =
               entry.interpolation &&
-              entry.interpolation.calc(entry.parent.value)
-            prev = prev !== void 0 && !reset ? prev : fromValue
-            if (entry.parent) {
-              parent = entry.parent
+              entry.interpolation.calc(entry.parent.value) // 获取前值
+            prev = prev !== void 0 && !reset ? prev : fromValue // 如果前值存在且没有设置reset，使用前值，否则使用配置的from值
+            if (entry.parent) { // 如果 parent 存在
+              parent = entry.parent // 获取并设置 parent
               parent.setValue(0, false)
-            } else parent = new AnimatedValue(0)
-            const range = { output: [prev, value] }
-            if (entry.interpolation) {
+            } else parent = new AnimatedValue(0) // 否则，设置new一个parent
+            const range = { output: [prev, value] } // 构造 range
+            if (entry.interpolation) { // 获取 interpolation，如果存在，更新range
               interpolation = entry.interpolation
               entry.interpolation.updateConfig(range)
-            } else interpolation = parent.interpolate(range)
+            } else interpolation = parent.interpolate(range) // 如果不存在，通过 parent 获取
           }
 
           toValues = toArray(target ? toValue.getPayload() : toValue)
           animatedValues = toArray(parent.getPayload())
+          // 如果设置了 reset 并且值不是 interpolation，用from 值设置 parent
           if (reset && !isInterpolation) parent.setValue(fromValue, false)
 
           this.hasChanged = true
           // Reset animated values
           animatedValues.forEach(value => {
-            value.startPosition = value.value
+            value.startPosition = value.value // 开始位置
             value.lastPosition = value.value
-            value.lastVelocity = isActive ? value.lastVelocity : undefined
-            value.lastTime = isActive ? value.lastTime : undefined
-            value.startTime = now()
-            value.done = false
-            value.animatedStyles.clear()
+            value.lastVelocity = isActive ? value.lastVelocity : undefined // 速率
+            value.lastTime = isActive ? value.lastTime : undefined // lastTime
+            value.startTime = now() // 开始时间
+            value.done = false // 是否已经结束
+            value.animatedStyles.clear() // 清除 animatedStyle
           })
 
           // Set immediate values
@@ -306,7 +319,7 @@ class Controller<P extends any = {}> {
 
           return {
             ...acc,
-            [name]: {
+            [name]: { // 设置 name
               ...entry,
               name,
               parent,
@@ -317,9 +330,9 @@ class Controller<P extends any = {}> {
               config: toConfig,
               fromValues: toArray(parent.getValue()),
               immediate: callProp(immediate, name),
-              initialVelocity: withDefault(toConfig.velocity, 0),
-              clamp: withDefault(toConfig.clamp, false),
-              precision: withDefault(toConfig.precision, 0.01),
+              initialVelocity: withDefault(toConfig.velocity, 0), // 初始 velocity
+              clamp: withDefault(toConfig.clamp, false), // 初始 clamp
+              precision: withDefault(toConfig.precision, 0.01), // 初始 precision 设置为 0.01
               tension: withDefault(toConfig.tension, 170),
               friction: withDefault(toConfig.friction, 26),
               mass: withDefault(toConfig.mass, 1),
@@ -329,7 +342,7 @@ class Controller<P extends any = {}> {
             },
           }
         } else {
-          if (!currentValueDiffersFromGoal) {
+          if (!currentValueDiffersFromGoal) { // 如果新值和现有值相等
             // So ... the current target value (newValue) appears to be different from the previous value,
             // which normally constitutes an update, but the actual value (currentValue) matches the target!
             // In order to resolve this without causing an animation update we silently flag the animation as done,

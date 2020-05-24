@@ -32,9 +32,9 @@ function addAnimatedStyles(
   node: Animated | AnimatedProps,
   styles: Set<AnimatedProps>
 ) {
-  if ('update' in node) {
+  if ('update' in node) { // 如果 node 有 update 方法，把 node 添加到 styles
     styles.add(node)
-  } else {
+  } else { // 递归调用，styles 添加 node
     node.getChildren().forEach(child => addAnimatedStyles(child, styles))
   }
 }
@@ -52,23 +52,24 @@ export default class AnimatedValue extends Animated implements SpringValue {
 
   constructor(value: number | string) {
     super()
-    this.value = value
-    this.startPosition = value
-    this.lastPosition = value
+    this.value = value // 值
+    this.startPosition = value // 开始位置
+    this.lastPosition = value // 上一次位置
   }
 
   private flush() {
-    if (this.animatedStyles.size === 0) {
-      addAnimatedStyles(this, this.animatedStyles)
+    if (this.animatedStyles.size === 0) { // 如果 animatedStyles 没有内容了
+      addAnimatedStyles(this, this.animatedStyles) // animatedStyles 添加 node
     }
+    // 遍历 animatedStyles 进行 更新
     this.animatedStyles.forEach(animatedStyle => animatedStyle.update())
   }
 
-  public clearStyles() {
+  public clearStyles() { // 清除 animatedStyles
     this.animatedStyles.clear()
   }
 
-  public setValue = (value: number | string, flush = true) => {
+  public setValue = (value: number | string, flush = true) => { // 设置 value
     this.value = value
     if (flush) this.flush()
   }
