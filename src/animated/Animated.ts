@@ -21,7 +21,7 @@ export default abstract class Animated<Payload = unknown> {
 
   public addChild(child: Animated) {
     if (this.children.length === 0) this.attach() // 如果 this.children 长度为 0 ，attach
-    this.children.push(child) // 否则 push 到 this.children 中
+    this.children.push(child) // 把 child push 到 children 中
   }
 
   public removeChild(child: Animated) {

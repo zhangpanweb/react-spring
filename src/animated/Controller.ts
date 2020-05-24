@@ -47,11 +47,13 @@ class Controller<P extends any = {}> {
   /** update(props)
    *  This function filters input props and creates an array of tasks which are executed in .start()
    *  Each task is allowed to carry a delay, which means it can execute asnychroneously */
+  // 更新 props，整合传入的 props 数据，获取其中的 delay、to 和 其他属性，分组属性放入 queue 中
   update(args?: P) {
     //this._id = n + this.id
 
     if (!args) return this // 没有参数直接返回 controller
     // Extract delay and the to-prop from props
+    // 从 props 中提取 delay 和 to 属性
     const { delay = 0, to, ...props } = interpolateTo(args) as any
     if (is.arr(to) || is.fun(to)) {
       // If config is either a function or an array queue it up as is
@@ -64,6 +66,7 @@ class Controller<P extends any = {}> {
         // Fetch delay and create an entry, consisting of the to-props, the delay, and basic props
         const entry = { to: { [k]: v }, delay: callProp(delay, k), ...props }
         const previous = ops[entry.delay] && ops[entry.delay].to
+        // 将所有的 to 根据 delay 进行分组
         ops[entry.delay] = {
           ...ops[entry.delay],
           ...entry,
@@ -232,10 +235,10 @@ class Controller<P extends any = {}> {
         // Figure out what the value is supposed to be
         const isNumber = is.num(value)
         const isString =
-          is.str(value) &&
-          !value.startsWith('#') &&
-          !/\d/.test(value) &&
-          !colorNames[value]
+          is.str(value) && // 是字符串
+          !value.startsWith('#') && // 并且不是以 # 开头
+          !/\d/.test(value) && // 如果包含数字
+          !colorNames[value] // 并且不是颜色名称
         const isArray = is.arr(value)
         const isInterpolation = !isNumber && !isArray && !isString
 

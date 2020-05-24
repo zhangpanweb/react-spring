@@ -125,11 +125,13 @@ interface InterpolateTo<T> extends PartialExcludedProps {
 export function interpolateTo<T extends PartialExcludedProps>(
   props: T
 ): InterpolateTo<T> {
+  // 获取对应的 to 属性
   const forward: ForwardedProps<T> = getForwardProps(props)
-  // 如果 forward 属性没有，直接返回
+  // 如果 to 属性没有，直接返回
   if (is.und(forward)) return { to: forward, ...props }
   const rest = Object.keys(props).reduce<PartialExcludedProps>(
     (a: PartialExcludedProps, k: string) =>
+      // 遍历 props，如果 to 属性有值，返回对应的属性值
       !is.und((forward as any)[k]) ? a : { ...a, [k]: (props as any)[k] },
     {}
   )
